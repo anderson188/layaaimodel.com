@@ -1,4 +1,4 @@
-export const SITE_URL = "https://layaaimodel.com";
+export const SITE_URL = "https://www.layaaimodel.com";
 
 export const SITE_TITLE = "Laya AI - Open Source System-1 Decision Model";
 
