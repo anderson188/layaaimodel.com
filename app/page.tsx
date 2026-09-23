@@ -3,9 +3,11 @@ import Link from "next/link";
 import { CodeBlock } from "@/components/CodeBlock";
 import { DataTable } from "@/components/DataTable";
 import { PageTitle } from "@/components/PageTitle";
+import { VideoGallery } from "@/components/VideoGallery";
 import { caholBanking, luniPhishing, luniTyped, routedVsJev } from "@/lib/benchmarks";
 import { HOME_PREVIEW, PIP_INSTALL } from "@/lib/snippets";
 import { canonical, SITE_DESCRIPTION, SITE_TITLE, UPSTREAM_REPO } from "@/lib/site";
+import { COMMUNITY_VIDEOS, youtubeThumbUrl, youtubeWatchUrl } from "@/lib/videos";
 
 export const metadata: Metadata = {
   description:
@@ -61,10 +63,30 @@ const jsonLd = {
   author: { "@type": "Organization", name: "Convai Innovations" },
 };
 
+const videoJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Community Laya YouTube explainers",
+  itemListElement: COMMUNITY_VIDEOS.map((video, index) => ({
+    "@type": "ListItem",
+    position: index + 1,
+    item: {
+      "@type": "VideoObject",
+      name: video.title,
+      description: video.note,
+      thumbnailUrl: youtubeThumbUrl(video.id),
+      embedUrl: `https://www.youtube-nocookie.com/embed/${video.id}`,
+      contentUrl: youtubeWatchUrl(video.id),
+      publisher: { "@type": "Person", name: video.channel },
+    },
+  })),
+};
+
 export default function Home() {
   return (
     <div className="space-y-16">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(videoJsonLd) }} />
       <section>
         <PageTitle lede="Laya system one model, compared with Jev. Multilingual, non-autoregressive System 1 decision engine: typed decisions over 100+ languages in a single forward pass." />
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink">
@@ -95,6 +117,8 @@ export default function Home() {
         <DataTable {...luniPhishing} />
         <DataTable {...caholBanking} />
       </section>
+
+      <VideoGallery />
 
       <section>
         <h2 className="text-xl font-semibold tracking-tight">Features</h2>
