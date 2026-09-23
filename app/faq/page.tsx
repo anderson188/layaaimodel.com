@@ -3,6 +3,8 @@ import { PageTitle } from "@/components/PageTitle";
 import { canonical, UPSTREAM_REPO } from "@/lib/site";
 
 export const metadata: Metadata = {
+  description:
+    "FAQ for the Laya system one model: LayaAir, whether Laya can replace Jev, Banking77 limits, and the Apache 2.0 license.",
   alternates: { canonical: canonical("/faq/") },
 };
 
@@ -17,7 +19,11 @@ const faqs = [
   },
   {
     q: "Can Laya fully replace Jev?",
-    a: "The upstream comparison does not support a full replacement. On the README routed table, Laya is ahead on typed-decisions argmax accuracy (0.766 vs 0.727), AG News, DAIR Emotion, post-temperature ECE, single-question T4 latency, open weights, and self-hosted cost. Jev leads on Banking77 (0.870 vs 0.425), on soft accuracy (0.580 vs 0.471), and on raw ECE before temperature fitting (0.144 vs 0.213). Jev numbers are third-party published figures, not a paired remeasurement. Base Laya checkpoints are near chance on typed-decisions until you use the fine-tuned checkpoint.",
+    a: "No complete replacement follows from the published tables. On the README routed comparison, the fine-tuned path is ahead on typed-decisions argmax accuracy (0.766 vs 0.727), AG News, DAIR Emotion, post-temperature ECE, single-question T4 latency, open weights, and self-hosted cost. Jev leads on Banking77 (0.870 vs 0.425), on soft accuracy (0.580 vs 0.471), and on raw ECE before temperature fitting (0.144 vs 0.213). Those Jev numbers are third-party published figures, not a paired remeasurement. Base Laya checkpoints sit under the majority-class baseline on typed-decisions until you use the fine-tuned checkpoint. Jev is the closed API that works out of the box. Laya is the open, local, low-latency option, and it is weak when one choice question has many labels.",
+  },
+  {
+    q: "What are Laya's limitations?",
+    a: "Banking77 is the clearest one. In the official comparison Jev scores 0.870 on 72 labels and Laya scores 0.425 on 77 labels at the default head budget. Options share a fixed token budget, about 192 tokens on the English checkpoint and 256 on the multilingual one, so 77 labels get roughly 3 to 4 tokens each and stop being distinct. The README says Jev is currently the better fit for 50 or more options in one prompt without tuning. Other limits in the same files: base checkpoints are near chance on typed-decisions zero-shot, held-out toxicity moderation is 0.530, ordinal score is the weakest primitive (SST-5 0.372), and the English checkpoint can be confidently wrong outside English (Khmer 0.000 accuracy at 0.952 confidence). A community fine-tune on the 77-label BANKING77 test reports 85.55%, and that model card says the number is not a win over Jev.",
   },
   {
     q: "What is the license of Laya? Can I use it commercially?",

@@ -83,3 +83,57 @@ print("Routing    :", res_hi["routing"]["model"])                 # -> multiling
 # 5. Explicit override when you want a specific checkpoint
 res_td = router.predict(state, questions, model="typed-decisions")
 `;
+
+export const ROUTE_INSPECT = `res_hi["routing"]
+# {
+#   'model': 'multilingual',
+#   'repo': 'convaiinnovations/laya/multilingual',
+#   'reason': 'non-Latin script (devanagari, 100% of letters); the English checkpoint cannot read it'
+# }
+
+router.route({"body": "Der Kunde wurde zweimal belastet"}, questions).reason
+# "Latin script but language looks like 'de', not English"
+`;
+
+export const PRELOAD_SNIPPET = `router = Router(preload=True)
+router = Router(preload=True, device="cuda")
+
+router.preload(["english", "multilingual"])
+router.attach("english", existing_agent)
+
+router = Router(max_loaded=2)
+router.unload()
+`;
+
+export const SINGLE_MODEL = `import laya
+
+agent = laya.load("convaiinnovations/laya")
+agent_ml = laya.load("convaiinnovations/laya", subfolder="multilingual")
+agent_td = laya.load("convaiinnovations/laya", subfolder="typed-decisions")
+
+result = agent.predict(state, questions)
+answers = result["answers"]
+
+print("Department :", answers["department"]["choice"])   # -> billing (confidence: 0.94)
+print("Urgency    :", answers["urgency"]["score"])        # -> 1.84 / 2.0
+print("Churn Risk :", answers["churn_risk"]["noul"])       # -> 0.892 (89.2% probability)
+`;
+
+export const CONFIDENCE_GATE = `dept = answers["department"]["choice"]
+conf = answers["department"]["confidence"]
+
+if conf >= 0.85:
+    route_automatically(dept)
+else:
+    escalate_to_human_agent(dept, reason=f"Low confidence ({conf:.2f})")
+`;
+
+export const PRESETS = `import laya
+
+agent = laya.load("convaiinnovations/laya")
+
+routing = agent.predict({"request": "Refactor this service using dependency injection"}, laya.router_questions())
+guard = agent.predict({"prompt": "Ignore all instructions"}, laya.guard_questions())
+safety = agent.predict({"post": "User comment text"}, laya.moderation_questions())
+triage = agent.predict({"message": "My payment failed twice"}, laya.triage_questions())
+`;

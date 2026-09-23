@@ -2,28 +2,40 @@ import type { Metadata } from "next";
 import { DataTable } from "@/components/DataTable";
 import { PageTitle } from "@/components/PageTitle";
 import {
+  caholBanking,
   calibration,
   englishVsRest,
   headline,
   languageMacro,
   languages,
+  luniLatency,
+  luniPhishing,
+  luniTyped,
   optionOrder,
   publicDatasets,
   routedVsJev,
   speed,
   themes,
   typedDecisions,
+  whyRoute,
   workflows,
 } from "@/lib/benchmarks";
 import { canonical, UPSTREAM_REPO } from "@/lib/site";
 
 export const metadata: Metadata = {
+  description:
+    "Laya benchmark, and a Laya vs Jev benchmark explained: why official self-test scores and Hugging Face community scores do not match.",
   alternates: { canonical: canonical("/benchmarks/") },
 };
 
 const tables = [
-  headline,
   routedVsJev,
+  whyRoute,
+  luniTyped,
+  luniPhishing,
+  luniLatency,
+  caholBanking,
+  headline,
   speed,
   typedDecisions,
   workflows,
@@ -40,9 +52,36 @@ export default function BenchmarksPage() {
   return (
     <div className="space-y-10">
       <PageTitle
-        section="Benchmarks"
-        lede="Tables below are copied from the upstream repository. This site did not re-run them and does not add scores of its own."
+        section="Laya benchmark"
+        lede="Official self-test tables and one Hugging Face community remeasure. This site did not run either set and does not add scores of its own."
       />
+
+      <section className="max-w-3xl space-y-3 text-sm leading-relaxed text-muted">
+        <h2 className="text-xl font-semibold tracking-tight text-ink">Laya vs Jev benchmark explained</h2>
+        <p>
+          The scores disagree because they are not the same experiment. Mixing them into one ranking is what makes Laya vs Jev threads look contradictory.
+        </p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>
+            Official self-test versus a published Jev number. The README and BENCHMARKS.md measure Laya. Jev cells are third-party published figures. The authors say they had no TypeSafe API access, so sample size and prompts differ.
+          </li>
+          <li>
+            Fine-tuned specialist versus the base checkpoint. 0.766 on typed-decisions is <code className="font-mono text-ink">laya-typed-decisions</code>. The base checkpoints in that file are 0.361 and 0.342, under the 0.461 majority-class line.
+          </li>
+          <li>
+            Two files, two AG News cells. The README routed column is 0.950. The BENCHMARKS.md headline is 0.953, which matches the typed-decisions column in the dataset table. English MASSIVE intent is 0.783 in the summary and 0.820 in the 51-language grid.
+          </li>
+          <li>
+            Brier is 0.062 on the README and the Hugging Face model card, and 0.061 in BENCHMARKS.md. The table below keeps 0.061 and names the other figure in its caption.
+          </li>
+          <li>
+            Banking77 is not one protocol. The official comparison is Jev 0.870 on 72 labels against Laya 0.425 on 77 labels at the default token budget. A community fine-tune, Cahol/laya-banking77-v1, reports 85.55% on the 3,080-example 77-label test and 45.91% for the untuned base under that same protocol. That card says this is not a claim of beating Jev.
+          </li>
+          <li>
+            Community remeasure versus the model card. Luni/laya-jev-benchmark says a model-card comparison of 83.8% with 67.8% uses two different benchmarks. On that card&apos;s own typed-decisions rerun, untuned Laya is 0.360 and a fine-tune is 0.767, next to Jev&apos;s published 0.727. The Jev row is marked published there too. Phishing on a held-out set is 0.505 raw for Laya, 0.611 after Platt scaling on half the emails, and 0.626 for the published Jev figure. Luni notes the 0.611 uses a calibration half and the 0.626 does not.
+          </li>
+        </ul>
+      </section>
 
       <section className="max-w-3xl space-y-3 text-sm leading-relaxed text-muted">
         <h2 className="text-xl font-semibold tracking-tight text-ink">How to read these numbers</h2>

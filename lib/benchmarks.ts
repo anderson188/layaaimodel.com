@@ -140,7 +140,7 @@ export const publicDatasets = {
 
 export const typedDecisions = {
   caption:
-    "BENCHMARKS.md — typed-decisions, 400 cases, 2,000 decisions. Jev, teacher ceiling, majority class, and random guess are reference rows from that file.",
+    "BENCHMARKS.md — typed-decisions, 400 cases, 2,000 decisions. Brier for laya-typed-decisions is 0.061 in this file and 0.062 in the README and the Hugging Face model card. Both are shown as published; this site does not average them.",
   headers: ["model", "accuracy", "soft acc", "Brier", "ECE", "score MAE"],
   rows: [
     ["laya-typed-decisions", "**0.766**", "0.471", "0.061", "0.213", "0.242"],
@@ -202,5 +202,66 @@ export const checkpoints = {
     ["laya", "ModernBERT-large", "421M", "512", "English"],
     ["laya-multilingual", "mmBERT-base", "322M", "1024", "100+ languages, 2x faster"],
     ["laya-typed-decisions", "ModernBERT-large", "421M", "1024", "the typed-decisions workflows"],
+  ],
+};
+
+export const whyRoute = {
+  caption:
+    "Official self-test. README “Why Route” table: 17,416 questions, one T4, identical questions per model.",
+  headers: ["Benchmark / Task", "English (laya)", "Multilingual", "Router (routed)"],
+  rows: [
+    ["MASSIVE intent, English", "**0.783**", "0.657", "**0.783**"],
+    ["MASSIVE intent, 13 other languages", "0.306", "**0.451**", "**0.451**"],
+    ["XNLI, English", "**0.860**", "0.843", "**0.860**"],
+    ["XNLI, 14 other languages", "0.521", "**0.731**", "**0.731**"],
+    ["Languages usable (>3× random)", "23 / 51", "45 / 51", "**45 / 51**"],
+    ["Latency, 1 question (T4)", "39.5 ms", "**32.8 ms**", "**32.8 ms**"],
+    ["Latency, 10 questions batched", "158.6 ms", "**72.3 ms**", "**72.3 ms**"],
+  ],
+};
+
+export const luniPhishing = {
+  caption:
+    "Third-party independent test. Hugging Face dataset Luni/laya-jev-benchmark, PhishNChips, 2,000 emails, RTX 5090. Laya rows were measured there. Rows marked published are quotes, not a Jev API rerun.",
+  headers: ["Model", "Accuracy", "ECE", "AUROC", "Recall", "p50"],
+  rows: [
+    ["Laya, raw", "0.505", "0.441", "0.678", "0.012", "**9 ms**"],
+    ["Laya, Platt-calibrated", "**0.611**", "—", "0.679", "—", "9 ms"],
+    ["Jev (published)", "0.626", "0.154", "0.689", "0.432", "239 ms"],
+    ["Claude Haiku 4.5 (published)", "0.813", "0.097", "0.837", "0.764", "687 ms"],
+  ],
+};
+
+export const luniTyped = {
+  caption:
+    "Third-party independent test. Luni/laya-jev-benchmark, typed-decisions, 400 cases. Laya was remeasured. The Jev row is marked published in that card.",
+  headers: ["Model", "Accuracy", "ECE", "ms per case"],
+  rows: [
+    ["Laya, no fine-tuning", "0.360", "0.175", "15.9"],
+    ["Laya fine-tuned on this task", "**0.767**", "0.212", "16.4"],
+    ["Jev 1.13.0 (published)", "0.727", "0.144", "710"],
+    ["Teacher self-agreement", "0.735", "—", "—"],
+  ],
+};
+
+export const luniLatency = {
+  caption:
+    "Third-party independent test. Luni/laya-jev-benchmark latency on an RTX 5090, fp16, after warmup. Cold load in that card is 14.9 s.",
+  headers: ["Questions in one pass", "p50", "per question"],
+  rows: [
+    ["1", "10.7 ms", "10.7 ms"],
+    ["10", "42.6 ms", "4.3 ms"],
+    ["50", "246 ms", "4.9 ms"],
+    ["100", "496 ms", "5.0 ms"],
+  ],
+};
+
+export const caholBanking = {
+  caption:
+    "Third-party fine-tune, not a Laya vs Jev run. Cahol/laya-banking77-v1 on the official 3,080-example BANKING77 test, all 77 labels. That card says the result does not show Laya is better than Jev.",
+  headers: ["Model", "Accuracy", "Macro F1", "Top-3 accuracy"],
+  rows: [
+    ["Laya English base, same 77-label protocol", "45.91%", "42.90%", "69.42%"],
+    ["Cahol fine-tune", "**85.55%**", "**85.53%**", "**96.43%**"],
   ],
 };

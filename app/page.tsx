@@ -1,35 +1,40 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CodeBlock } from "@/components/CodeBlock";
 import { DataTable } from "@/components/DataTable";
 import { PageTitle } from "@/components/PageTitle";
-import { routedVsJev } from "@/lib/benchmarks";
+import { caholBanking, luniPhishing, luniTyped, routedVsJev } from "@/lib/benchmarks";
 import { HOME_PREVIEW, PIP_INSTALL } from "@/lib/snippets";
-import { SITE_DESCRIPTION, SITE_TITLE, UPSTREAM_REPO } from "@/lib/site";
+import { canonical, SITE_DESCRIPTION, SITE_TITLE, UPSTREAM_REPO } from "@/lib/site";
+
+export const metadata: Metadata = {
+  description:
+    "Laya vs Jev: Jev is a closed API. Laya is an open source System-1 model you run locally. Official self-test and a Hugging Face community remeasure, in separate tables.",
+  alternates: { canonical: canonical("/") },
+};
 
 const features = [
   {
     title: "Fast Inference",
-    body: "The README speed table measures 32.8 ms for one question on laya-multilingual, and 39.5 ms on laya, on a Tesla T4. Batched multilingual throughput in that table is 7.2 ms/question at 10 questions.",
+    body: "Official T4 table: 32.8 ms for one question on laya-multilingual, 39.5 ms on laya. Batched multilingual throughput there is 7.2 ms/question at 10 questions.",
   },
   {
     title: "Apache 2.0 Open Source",
-    body: "The repository license is Apache 2.0. Package install is pip install laya. Weights are published on Hugging Face under convaiinnovations/laya.",
+    body: "Weights and the pip package are Apache 2.0. Jev, in the same README comparison, is a closed API at a published $0.042 / 1M tokens.",
   },
   {
     title: "100+ Languages",
-    body: "The README describes laya-multilingual as the checkpoint for 100+ languages. On the published 51-language MASSIVE sweep, that checkpoint clears 3× random on 45 of 51 languages.",
+    body: "The README describes laya-multilingual as the 100+ language checkpoint. On the published 51-language MASSIVE sweep it clears 3× random on 45 of 51 languages.",
   },
   {
     title: "No LLM Hallucinations",
-    body: "The project states there is no text generation, so there is nothing to parse and nothing to hallucinate. Outputs are typed choice, score, and noul decisions. Label errors still show up in the benchmark tables.",
+    body: "The project says there is no text generation, so there is nothing to parse. Outputs are choice, score, and noul. Wrong labels still show up in the tables below.",
   },
 ];
 
 const useCases = [
-  { href: "/use-cases/#ticket-routing", title: "Ticket routing", body: "Department, urgency, churn, and refund flags on a support message." },
-  { href: "/use-cases/#content-safety", title: "Content safety", body: "Spam, phishing, and guardrail checks. Held-out toxicity is a weak result in the report." },
-  { href: "/use-cases/#intent-classification", title: "Intent classification", body: "Choice questions such as MASSIVE intent, with the router picking the checkpoint." },
-  { href: "/use-cases/#scoring", title: "Scoring", body: "Ordinal score rubrics for urgency or severity. SST-5 is the weakest published primitive." },
+  { href: "/use-cases/#when-laya", title: "Choose Laya", body: "Local, open weights, small label sets, or a checkpoint you fine-tune." },
+  { href: "/use-cases/#when-jev", title: "Keep Jev", body: "Out of the box, or one choice question with more than about 20 labels." },
 ];
 
 const jsonLd = {
@@ -48,7 +53,11 @@ const jsonLd = {
   codeRepository: UPSTREAM_REPO,
   installUrl: "https://pypi.org/project/laya/",
   url: UPSTREAM_REPO,
-  sameAs: ["https://pypi.org/project/laya/", "https://huggingface.co/convaiinnovations/laya"],
+  sameAs: [
+    "https://pypi.org/project/laya/",
+    "https://huggingface.co/convaiinnovations/laya",
+    "https://huggingface.co/datasets/Luni/laya-jev-benchmark",
+  ],
   author: { "@type": "Organization", name: "Convai Innovations" },
 };
 
@@ -57,21 +66,34 @@ export default function Home() {
     <div className="space-y-16">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <section>
-        <PageTitle lede="Multilingual, non-autoregressive System 1 decision engine: typed decisions over 100+ languages in a single forward pass." />
+        <PageTitle lede="Laya system one model, compared with Jev. Multilingual, non-autoregressive System 1 decision engine: typed decisions over 100+ languages in a single forward pass." />
+        <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink">
+          Jev is a closed API that works out of the box. Laya is open source, runs locally, and is low latency, and it is weak when one choice question has many labels.
+        </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/get-started/"
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
-          >
+          <Link href="/get-started/" className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
             Get Started
           </Link>
-          <Link
-            href="/benchmarks/"
-            className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent"
-          >
+          <Link href="/benchmarks/" className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent">
             View Benchmarks
           </Link>
         </div>
+      </section>
+
+      <section className="space-y-6">
+        <h2 className="text-xl font-semibold tracking-tight">Laya vs Jev</h2>
+        <p className="max-w-3xl text-sm leading-relaxed text-muted">
+          Two sources sit in separate tables on purpose. The first is the project&apos;s own README. The second is a Hugging Face community dataset that remeasured Laya. Jev cells in both places are published quotes unless a caption says otherwise. The write-up of why the figures disagree is the <Link href="/benchmarks/" className="text-accent hover:underline">Laya vs Jev benchmark explained</Link> page.
+        </p>
+        <div className="rounded-lg border border-line bg-panel p-5 text-sm leading-relaxed text-muted">
+          On the official typed-decisions run, the base checkpoints score 0.362 and 0.342, under the 0.461 majority-class baseline. The 0.766 figure belongs to <code className="font-mono text-ink">laya-typed-decisions</code>, fine-tuned on that benchmark&apos;s training split. Installing the package does not give you that score.
+        </div>
+        <h3 className="text-lg font-medium text-ink">Official self-test</h3>
+        <DataTable {...routedVsJev} />
+        <h3 className="text-lg font-medium text-ink">Third-party independent test</h3>
+        <DataTable {...luniTyped} />
+        <DataTable {...luniPhishing} />
+        <DataTable {...caholBanking} />
       </section>
 
       <section>
@@ -87,9 +109,9 @@ export default function Home() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold tracking-tight">Quickstart</h2>
+        <h2 className="text-xl font-semibold tracking-tight">Run Laya locally</h2>
         <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted">
-          Install from PyPI, then call the Router. This preview is a shortened slice of the README quickstart. The full script is on Get Started. This site does not run the model.
+          Shortened slice of the README Router quickstart. Hardware, preload pitfalls, and the full script are on <Link href="/get-started/" className="text-accent hover:underline">Get Started</Link>. This site does not run the model.
         </p>
         <div className="mt-6 space-y-4">
           <CodeBlock label="bash" code={PIP_INSTALL} />
@@ -98,29 +120,10 @@ export default function Home() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold tracking-tight">Benchmark snapshot</h2>
-        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted">
-          Side-by-side figures from the upstream README. Laya numbers are the project&apos;s own measurements. Jev numbers in that table are third-party published results and were not remeasured by the Laya authors. Read the full tables before treating any row as a product claim.
-        </p>
-        <div className="mt-6">
-          <DataTable {...routedVsJev} />
-        </div>
-        <p className="mt-3 text-sm">
-          <Link href="/benchmarks/" className="text-accent hover:underline">
-            Open the benchmark tables
-          </Link>
-        </p>
-      </section>
-
-      <section>
         <h2 className="text-xl font-semibold tracking-tight">Use cases</h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {useCases.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-lg border border-line bg-panel p-5 hover:border-accent"
-            >
+            <Link key={item.href} href={item.href} className="rounded-lg border border-line bg-panel p-5 hover:border-accent">
               <h3 className="font-medium text-ink">{item.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted">{item.body}</p>
             </Link>

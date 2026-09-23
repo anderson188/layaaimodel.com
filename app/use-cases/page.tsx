@@ -3,6 +3,8 @@ import { PageTitle } from "@/components/PageTitle";
 import { canonical } from "@/lib/site";
 
 export const metadata: Metadata = {
+  description:
+    "When to choose Laya and when to keep Jev: local open-source routing versus a closed API for wide label sets.",
   alternates: { canonical: canonical("/use-cases/") },
 };
 
@@ -63,8 +65,27 @@ export default function UseCasesPage() {
     <div className="space-y-10">
       <PageTitle
         section="Use cases"
-        lede="Four tasks named from the repository presets and primitives. Fit and poor-fit notes use only the published tables and the README limits."
+        lede="When the published tables point at Laya, and when they point at Jev. Task notes below use the README limits and the benchmark files."
       />
+      <div className="grid gap-4 md:grid-cols-2">
+        <article id="when-laya" className="scroll-mt-24 rounded-lg border border-line bg-panel p-5">
+          <h2 className="text-lg font-semibold text-ink">When to choose Laya</h2>
+          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted">
+            <li>You need to run the model on your own machine, with Apache 2.0 weights, and the README comparison lists self-hosted cost as $0.</li>
+            <li>The choice set is small. AG News has four labels. The ticket example uses four departments.</li>
+            <li>You will fine-tune. The 0.766 typed-decisions score is the specialist checkpoint, not the base install.</li>
+            <li>Latency on a local GPU matters. The official one-question multilingual figure is 32.8 ms on a T4.</li>
+          </ul>
+        </article>
+        <article id="when-jev" className="scroll-mt-24 rounded-lg border border-line bg-panel p-5">
+          <h2 className="text-lg font-semibold text-ink">When to keep Jev</h2>
+          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted">
+            <li>You want a closed API that is already specialized, without a fine-tune step. Base Laya is under the majority-class line on typed-decisions.</li>
+            <li>One choice question has more than about 20 labels. Banking77 is 0.870 for Jev on 72 labels and 0.425 for Laya on 77 labels at the default budget.</li>
+            <li>You need the probability distribution, not only the top label. Jev&apos;s published soft accuracy is 0.580 against 0.471, and its published raw ECE is 0.144 against 0.213 before Laya&apos;s temperature fit.</li>
+          </ul>
+        </article>
+      </div>
       <div className="grid gap-4">
         {cases.map((item) => (
           <article key={item.id} id={item.id} className="scroll-mt-24 rounded-lg border border-line bg-panel p-5">
