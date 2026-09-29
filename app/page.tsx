@@ -147,9 +147,6 @@ export default function Home() {
           <Link href="/pricing/" className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent">
             Pricing
           </Link>
-          <Link href="/get-started/" className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent">
-            Run locally
-          </Link>
         </div>
       </section>
 
