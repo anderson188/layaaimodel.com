@@ -11,6 +11,7 @@ export type UserRow = {
   pack_id: string | null;
   alert_email_enabled: number;
   alert_burn_pct: number;
+  disabled?: number;
   created_at: string;
 };
 
@@ -123,7 +124,8 @@ export async function userFromSession(env: Env, token: string | null): Promise<U
   )
     .bind(token_hash, nowIso())
     .first<UserRow>();
-  return row ?? null;
+  if (!row || row.disabled) return null;
+  return row;
 }
 
 export async function createApiKey(
@@ -154,13 +156,14 @@ export async function findApiKey(env: Env, token: string | null): Promise<(ApiKe
   const key_hash = await sha256Hex(token);
   const row = await env.DB.prepare(
     `SELECT k.id, k.user_id, k.name, k.key_prefix, k.key_hash, k.status, k.created_at,
-            u.credits as credits, u.email as email
+            u.credits as credits, u.email as email, u.disabled as disabled
      FROM api_keys k JOIN users u ON u.id = k.user_id
      WHERE k.key_hash = ? AND k.status = 'active'`,
   )
     .bind(key_hash)
-    .first<ApiKeyRow & { credits: number; email: string }>();
-  return row ?? null;
+    .first<ApiKeyRow & { credits: number; email: string; disabled?: number }>();
+  if (!row || row.disabled) return null;
+  return row;
 }
 
 export async function revokeApiKey(env: Env, userId: string, keyId: string): Promise<boolean> {

@@ -1,5 +1,11 @@
 import {
-  addCredits,
+  handleAdminAction,
+  handleAdminAlerts,
+  handleAdminGrant,
+  handleAdminMode,
+  handleAdminOverview,
+} from "./admin";
+import {
   anonTrialRemaining,
   consumeAnonTrial,
   createApiKey,
@@ -7,10 +13,10 @@ import {
   createUser,
   ensureMonthlyFreeTokens,
   findApiKey,
+  getSetting,
   recentUpstreamStats,
   resolveUpstreamMode,
   revokeApiKey,
-  setSetting,
   usageSummary,
   userFromSession,
   verifyUser,
@@ -66,6 +72,9 @@ async function resolveDecideAuth(env: Env, req: Request, allowAnon: boolean) {
 }
 
 async function handleDecide(env: Env, req: Request, path: string, allowAnon = false): Promise<Response> {
+  if ((await getSetting(env.DB, "maintenance_mode")) === "1") {
+    return error("Gateway is in maintenance mode", 503, "maintenance");
+  }
   const authResult = await resolveDecideAuth(env, req, allowAnon);
   if ("error" in authResult && authResult.error) return authResult.error;
   const auth = authResult.auth!;
@@ -81,6 +90,9 @@ async function handleDecide(env: Env, req: Request, path: string, allowAnon = fa
 }
 
 async function handleBatchDecide(env: Env, req: Request): Promise<Response> {
+  if ((await getSetting(env.DB, "maintenance_mode")) === "1") {
+    return error("Gateway is in maintenance mode", 503, "maintenance");
+  }
   const authResult = await resolveDecideAuth(env, req, false);
   if ("error" in authResult && authResult.error) return authResult.error;
   const auth = authResult.auth!;
@@ -127,6 +139,9 @@ async function handleBatchDecide(env: Env, req: Request): Promise<Response> {
 }
 
 async function handleTool(env: Env, req: Request, path: string): Promise<Response> {
+  if ((await getSetting(env.DB, "maintenance_mode")) === "1") {
+    return error("Gateway is in maintenance mode", 503, "maintenance");
+  }
   const handler = findToolHandler(path);
   if (!handler) return error("Unknown tool", 404);
   const authResult = await resolveDecideAuth(env, req, true);
@@ -177,6 +192,7 @@ async function handleLogin(env: Env, req: Request): Promise<Response> {
   if (!body?.email || !body?.password) return error("`email` and `password` are required", 400);
   const user = await verifyUser(env, body.email, body.password);
   if (!user) return error("Invalid email or password", 401, "authentication_error");
+  if (user.disabled) return error("Account disabled", 403, "authentication_error");
   await ensureMonthlyFreeTokens(env, user.id, MONTHLY_FREE_TOKENS);
   const sessionToken = await createSession(env, user.id);
   const refreshed = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(user.id).first<typeof user>();
@@ -359,46 +375,6 @@ async function handleStatus(env: Env): Promise<Response> {
   });
 }
 
-async function handleAdminMode(env: Env, req: Request): Promise<Response> {
-  const token = bearerToken(req);
-  if (!env.ADMIN_TOKEN || token !== env.ADMIN_TOKEN) {
-    return error("Unauthorized", 401, "authentication_error");
-  }
-  const body = (await req.json().catch(() => null)) as { mode?: string } | null;
-  const mode = body?.mode?.toLowerCase();
-  if (mode !== "impossibl" && mode !== "paused" && mode !== "selfhost") {
-    return error("`mode` must be impossibl | paused | selfhost", 400);
-  }
-  await setSetting(env.DB, "upstream_mode", mode);
-  return json({ upstream_mode: mode });
-}
-
-async function handleAdminGrant(env: Env, req: Request): Promise<Response> {
-  const token = bearerToken(req);
-  if (!env.ADMIN_TOKEN || token !== env.ADMIN_TOKEN) {
-    return error("Unauthorized", 401, "authentication_error");
-  }
-  const body = (await req.json().catch(() => null)) as { email?: string; credits?: number } | null;
-  if (!body?.email || !body.credits) return error("`email` and `credits` are required", 400);
-  const user = await env.DB.prepare("SELECT id FROM users WHERE email = ?")
-    .bind(body.email.toLowerCase())
-    .first<{ id: string }>();
-  if (!user) return error("User not found", 404);
-  await addCredits(env, user.id, body.credits, "admin_grant");
-  return json({ granted: body.credits, email: body.email.toLowerCase() });
-}
-
-async function handleAdminAlerts(env: Env, req: Request): Promise<Response> {
-  const token = bearerToken(req);
-  if (!env.ADMIN_TOKEN || token !== env.ADMIN_TOKEN) {
-    return error("Unauthorized", 401, "authentication_error");
-  }
-  const { results } = await env.DB.prepare(
-    "SELECT id, key_id, user_id, reason, count, ts FROM rate_alerts ORDER BY ts DESC LIMIT 100",
-  ).all();
-  return json({ alerts: results });
-}
-
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
@@ -452,6 +428,10 @@ export default {
         res = await handleCheckout(env, req);
       } else if (req.method === "POST" && path === "/v1/billing/webhook") {
         res = await handleStripeWebhook(env, req);
+      } else if (req.method === "GET" && path === "/v1/admin/overview") {
+        res = await handleAdminOverview(env, req);
+      } else if (req.method === "POST" && path === "/v1/admin/action") {
+        res = await handleAdminAction(env, req);
       } else if (req.method === "POST" && path === "/v1/admin/upstream-mode") {
         res = await handleAdminMode(env, req);
       } else if (req.method === "POST" && path === "/v1/admin/grant-credits") {

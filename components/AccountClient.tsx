@@ -389,6 +389,12 @@ export function AccountClient() {
       </section>
 
       <p className="text-xs leading-relaxed text-muted">{API_DISCLAIMER}</p>
+      <p className="text-xs text-muted">
+        Operators:{" "}
+        <Link className="text-accent hover:underline" href="/admin/">
+          Admin console
+        </Link>
+      </p>
     </div>
   );
 }

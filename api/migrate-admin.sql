@@ -1,0 +1,2 @@
+-- Admin: user disable flag
+ALTER TABLE users ADD COLUMN disabled INTEGER NOT NULL DEFAULT 0;

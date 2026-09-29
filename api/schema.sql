@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   pack_id TEXT,
   alert_email_enabled INTEGER NOT NULL DEFAULT 1,
   alert_burn_pct INTEGER NOT NULL DEFAULT 80,
+  disabled INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
 );
 

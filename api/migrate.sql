@@ -19,3 +19,5 @@ CREATE TABLE IF NOT EXISTS monthly_grants (
 );
 
 CREATE INDEX IF NOT EXISTS idx_usage_user_ts ON usage_events(user_id, ts);
+
+ALTER TABLE users ADD COLUMN disabled INTEGER NOT NULL DEFAULT 0;
