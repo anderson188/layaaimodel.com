@@ -2,6 +2,7 @@ export interface Env {
   DB: D1Database;
   IMPOSSIBL_API_KEY: string;
   ADMIN_TOKEN?: string;
+  ADMIN_EMAILS?: string;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
   SESSION_PEPPER?: string;

@@ -12,6 +12,7 @@ export type UserRow = {
   alert_email_enabled: number;
   alert_burn_pct: number;
   disabled?: number;
+  is_admin?: number;
   created_at: string;
 };
 
@@ -46,6 +47,27 @@ export async function resolveUpstreamMode(env: Env): Promise<"impossibl" | "paus
   return "impossibl";
 }
 
+export function adminEmailSet(env: Env): Set<string> {
+  return new Set(
+    (env.ADMIN_EMAILS ?? "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+export function isAdminEmail(env: Env, email: string): boolean {
+  return adminEmailSet(env).has(email.toLowerCase());
+}
+
+/** Keep users.is_admin in sync with ADMIN_EMAILS. */
+export async function syncUserAdminFlag(env: Env, user: UserRow): Promise<UserRow> {
+  const want = isAdminEmail(env, user.email) ? 1 : 0;
+  if ((user.is_admin ?? 0) === want) return user;
+  await env.DB.prepare("UPDATE users SET is_admin = ? WHERE id = ?").bind(want, user.id).run();
+  return { ...user, is_admin: want };
+}
+
 export async function createUser(
   env: Env,
   email: string,
@@ -59,9 +81,9 @@ export async function createUser(
   const credits = parseIntEnv(env.DEFAULT_SIGNUP_CREDITS, MONTHLY_FREE_TOKENS);
 
   await env.DB.prepare(
-    "INSERT INTO users (id, email, password_hash, salt, credits, pack_id, alert_email_enabled, alert_burn_pct, created_at) VALUES (?, ?, ?, ?, ?, NULL, 1, 80, ?)",
+    "INSERT INTO users (id, email, password_hash, salt, credits, pack_id, alert_email_enabled, alert_burn_pct, disabled, is_admin, created_at) VALUES (?, ?, ?, ?, ?, NULL, 1, 80, 0, ?, ?)",
   )
-    .bind(id, email.toLowerCase(), password_hash, salt, credits, created_at)
+    .bind(id, email.toLowerCase(), password_hash, salt, credits, isAdminEmail(env, email) ? 1 : 0, created_at)
     .run();
 
   if (credits > 0) {
@@ -88,6 +110,8 @@ export async function createUser(
     pack_id: null,
     alert_email_enabled: 1,
     alert_burn_pct: 80,
+    disabled: 0,
+    is_admin: isAdminEmail(env, email) ? 1 : 0,
     created_at,
   };
   return { user, sessionToken };

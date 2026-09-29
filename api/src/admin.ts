@@ -1,13 +1,27 @@
 import type { Env } from "./env";
-import { addCredits, getSetting, recentUpstreamStats, resolveUpstreamMode, setSetting } from "./db";
+import {
+  addCredits,
+  getSetting,
+  isAdminEmail,
+  recentUpstreamStats,
+  resolveUpstreamMode,
+  setSetting,
+  syncUserAdminFlag,
+  userFromSession,
+} from "./db";
 import { bearerToken, error, json } from "./util";
 
-function requireAdmin(env: Env, req: Request): Response | null {
+async function requireAdmin(env: Env, req: Request): Promise<Response | null> {
   const token = bearerToken(req);
-  if (!env.ADMIN_TOKEN || token !== env.ADMIN_TOKEN) {
-    return error("Unauthorized", 401, "authentication_error");
+  if (env.ADMIN_TOKEN && token === env.ADMIN_TOKEN) return null;
+  if (token?.startsWith("sess_")) {
+    const user = await userFromSession(env, token);
+    if (user) {
+      const synced = await syncUserAdminFlag(env, user);
+      if (synced.is_admin || isAdminEmail(env, synced.email)) return null;
+    }
   }
-  return null;
+  return error("Unauthorized", 401, "authentication_error");
 }
 
 function clampPage(raw: string | null, fallback = 1): number {
@@ -22,7 +36,7 @@ function clampLimit(raw: string | null, fallback = 10, max = 50): number {
 }
 
 export async function handleAdminOverview(env: Env, req: Request): Promise<Response> {
-  const denied = requireAdmin(env, req);
+  const denied = await requireAdmin(env, req);
   if (denied) return denied;
 
   const url = new URL(req.url);
@@ -46,7 +60,7 @@ export async function handleAdminOverview(env: Env, req: Request): Promise<Respo
   // Consumed tokens = sum of usage credits_charged (same unit as prepaid credits).
   const usersSql =
     usersSort === "usage"
-      ? `SELECT u.id, u.email, u.credits, u.pack_id, u.disabled, u.created_at,
+      ? `      SELECT u.id, u.email, u.credits, u.pack_id, u.disabled, u.is_admin, u.created_at,
                 COALESCE(s.consumed, 0) as consumed_tokens
          FROM users u
          LEFT JOIN (
@@ -55,7 +69,7 @@ export async function handleAdminOverview(env: Env, req: Request): Promise<Respo
          ${usersEmail ? "WHERE u.email LIKE ?" : ""}
          ORDER BY consumed_tokens DESC, u.created_at DESC
          LIMIT ? OFFSET ?`
-      : `SELECT u.id, u.email, u.credits, u.pack_id, u.disabled, u.created_at,
+      : `SELECT u.id, u.email, u.credits, u.pack_id, u.disabled, u.is_admin, u.created_at,
                 COALESCE(s.consumed, 0) as consumed_tokens
          FROM users u
          LEFT JOIN (
@@ -73,6 +87,7 @@ export async function handleAdminOverview(env: Env, req: Request): Promise<Respo
       credits: number;
       pack_id: string | null;
       disabled: number | null;
+      is_admin: number | null;
       created_at: string;
       consumed_tokens: number;
     }>();
@@ -91,6 +106,7 @@ export async function handleAdminOverview(env: Env, req: Request): Promise<Respo
       consume_ratio: total > 0 ? consumed / total : 0,
       pack_id: u.pack_id,
       disabled: u.disabled ? 1 : 0,
+      is_admin: u.is_admin ? 1 : 0,
       created_at: u.created_at,
     };
   });
@@ -210,7 +226,7 @@ export async function handleAdminOverview(env: Env, req: Request): Promise<Respo
 }
 
 export async function handleAdminAction(env: Env, req: Request): Promise<Response> {
-  const denied = requireAdmin(env, req);
+  const denied = await requireAdmin(env, req);
   if (denied) return denied;
 
   const body = (await req.json().catch(() => null)) as {
@@ -310,7 +326,7 @@ export async function handleAdminAction(env: Env, req: Request): Promise<Respons
 
 /** Legacy endpoints kept for scripts / curl. */
 export async function handleAdminMode(env: Env, req: Request): Promise<Response> {
-  const denied = requireAdmin(env, req);
+  const denied = await requireAdmin(env, req);
   if (denied) return denied;
   const body = (await req.json().catch(() => null)) as { mode?: string } | null;
   return handleAdminAction(
@@ -324,7 +340,7 @@ export async function handleAdminMode(env: Env, req: Request): Promise<Response>
 }
 
 export async function handleAdminGrant(env: Env, req: Request): Promise<Response> {
-  const denied = requireAdmin(env, req);
+  const denied = await requireAdmin(env, req);
   if (denied) return denied;
   const body = (await req.json().catch(() => null)) as { email?: string; credits?: number } | null;
   return handleAdminAction(
@@ -338,7 +354,7 @@ export async function handleAdminGrant(env: Env, req: Request): Promise<Response
 }
 
 export async function handleAdminAlerts(env: Env, req: Request): Promise<Response> {
-  const denied = requireAdmin(env, req);
+  const denied = await requireAdmin(env, req);
   if (denied) return denied;
   const { results } = await env.DB.prepare(
     "SELECT id, key_id, user_id, reason, count, ts FROM rate_alerts ORDER BY ts DESC LIMIT 100",

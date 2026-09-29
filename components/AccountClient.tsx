@@ -14,6 +14,7 @@ type User = {
   pack_id?: string | null;
   alert_email_enabled?: boolean;
   alert_burn_pct?: number;
+  is_admin?: boolean;
 };
 type KeyRow = { id: string; name: string; key_prefix: string; status: string; created_at: string };
 type UsageRow = {
@@ -389,12 +390,20 @@ export function AccountClient() {
       </section>
 
       <p className="text-xs leading-relaxed text-muted">{API_DISCLAIMER}</p>
-      <p className="text-xs text-muted">
-        Operators:{" "}
-        <Link className="text-accent hover:underline" href="/admin/">
-          Admin console
-        </Link>
-      </p>
+      {user?.is_admin ? (
+        <p className="text-sm">
+          <Link className="font-medium text-accent hover:underline" href="/admin/">
+            Open admin console →
+          </Link>
+        </p>
+      ) : (
+        <p className="text-xs text-muted">
+          Operators:{" "}
+          <Link className="text-accent hover:underline" href="/admin/">
+            Admin console
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

@@ -18,6 +18,7 @@ export function Header() {
   const menuRef = useRef<HTMLDetailsElement>(null);
   const [authed, setAuthed] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -27,18 +28,21 @@ export function Header() {
         if (!cancelled) {
           setAuthed(false);
           setEmail(null);
+          setIsAdmin(false);
         }
         return;
       }
-      const me = await apiFetch<{ user: { email: string } }>("/v1/me", { token });
+      const me = await apiFetch<{ user: { email: string; is_admin?: boolean } }>("/v1/me", { token });
       if (cancelled) return;
       if (me.ok) {
         setAuthed(true);
         setEmail(me.data.user.email);
+        setIsAdmin(!!me.data.user.is_admin);
       } else {
         window.localStorage.removeItem(SESSION_KEY);
         setAuthed(false);
         setEmail(null);
+        setIsAdmin(false);
       }
     }
     void sync();
@@ -106,15 +110,28 @@ export function Header() {
                 ))}
                 <li className="my-1 border-t border-line" />
                 {authed ? (
-                  <li>
-                    <Link
-                      href="/account/"
-                      onClick={closeMenu}
-                      className="block rounded-md px-2.5 py-1.5 text-sm font-medium text-accent"
-                    >
-                      Account
-                    </Link>
-                  </li>
+                  <>
+                    {isAdmin ? (
+                      <li>
+                        <Link
+                          href="/admin/"
+                          onClick={closeMenu}
+                          className="block rounded-md px-2.5 py-1.5 text-sm font-medium text-accent"
+                        >
+                          Admin
+                        </Link>
+                      </li>
+                    ) : null}
+                    <li>
+                      <Link
+                        href="/account/"
+                        onClick={closeMenu}
+                        className="block rounded-md px-2.5 py-1.5 text-sm font-medium text-accent"
+                      >
+                        Account
+                      </Link>
+                    </li>
+                  </>
                 ) : (
                   <li>
                     <button
@@ -135,13 +152,23 @@ export function Header() {
 
           <div className="hidden items-center gap-2 lg:flex">
             {authed ? (
-              <Link
-                href="/account/"
-                className="max-w-[10rem] truncate rounded-md border border-line bg-panel px-3 py-1.5 text-sm font-medium text-ink hover:border-accent"
-                title={email ?? "Account"}
-              >
-                {email ?? "Account"}
-              </Link>
+              <>
+                {isAdmin ? (
+                  <Link
+                    href="/admin/"
+                    className="rounded-md border border-line px-3 py-1.5 text-sm font-medium text-ink hover:border-accent"
+                  >
+                    Admin
+                  </Link>
+                ) : null}
+                <Link
+                  href="/account/"
+                  className="max-w-[10rem] truncate rounded-md border border-line bg-panel px-3 py-1.5 text-sm font-medium text-ink hover:border-accent"
+                  title={email ?? "Account"}
+                >
+                  {email ?? "Account"}
+                </Link>
+              </>
             ) : (
               <button
                 type="button"

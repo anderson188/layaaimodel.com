@@ -17,6 +17,7 @@ import {
   recentUpstreamStats,
   resolveUpstreamMode,
   revokeApiKey,
+  syncUserAdminFlag,
   usageSummary,
   userFromSession,
   verifyUser,
@@ -173,6 +174,7 @@ async function handleRegister(env: Env, req: Request): Promise<Response> {
           email: user.email,
           credits: user.credits,
           pack_id: user.pack_id,
+          is_admin: !!user.is_admin,
         },
         session_token: sessionToken,
       },
@@ -193,12 +195,19 @@ async function handleLogin(env: Env, req: Request): Promise<Response> {
   const user = await verifyUser(env, body.email, body.password);
   if (!user) return error("Invalid email or password", 401, "authentication_error");
   if (user.disabled) return error("Account disabled", 403, "authentication_error");
-  await ensureMonthlyFreeTokens(env, user.id, MONTHLY_FREE_TOKENS);
-  const sessionToken = await createSession(env, user.id);
-  const refreshed = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(user.id).first<typeof user>();
-  const u = refreshed ?? user;
+  const synced = await syncUserAdminFlag(env, user);
+  await ensureMonthlyFreeTokens(env, synced.id, MONTHLY_FREE_TOKENS);
+  const sessionToken = await createSession(env, synced.id);
+  const refreshed = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(synced.id).first<typeof synced>();
+  const u = refreshed ?? synced;
   return json({
-    user: { id: u.id, email: u.email, credits: u.credits, pack_id: u.pack_id },
+    user: {
+      id: u.id,
+      email: u.email,
+      credits: u.credits,
+      pack_id: u.pack_id,
+      is_admin: !!u.is_admin,
+    },
     session_token: sessionToken,
   });
 }
@@ -206,15 +215,17 @@ async function handleLogin(env: Env, req: Request): Promise<Response> {
 async function handleMe(env: Env, req: Request): Promise<Response> {
   const user = await requireUser(env, req);
   if (!user) return error("Unauthorized", 401, "authentication_error");
-  const summary = await usageSummary(env, user.id);
+  const synced = await syncUserAdminFlag(env, user);
+  const summary = await usageSummary(env, synced.id);
   return json({
     user: {
-      id: user.id,
-      email: user.email,
-      credits: user.credits,
-      pack_id: user.pack_id,
-      alert_email_enabled: !!user.alert_email_enabled,
-      alert_burn_pct: user.alert_burn_pct,
+      id: synced.id,
+      email: synced.email,
+      credits: synced.credits,
+      pack_id: synced.pack_id,
+      alert_email_enabled: !!synced.alert_email_enabled,
+      alert_burn_pct: synced.alert_burn_pct,
+      is_admin: !!synced.is_admin,
     },
     usage: summary,
   });

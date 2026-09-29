@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { API_BASE_URL } from "@/lib/api";
-import { apiFetch } from "@/lib/apiClient";
+import { apiFetch, SESSION_KEY } from "@/lib/apiClient";
+import { openAuthModal } from "@/components/AuthModal";
 import { CREDIT_PACKS } from "@/lib/pricing";
 
 export const ADMIN_TOKEN_KEY = "laya_admin_token";
@@ -39,6 +40,7 @@ type AdminData = {
     consume_ratio: number;
     pack_id: string | null;
     disabled: number;
+    is_admin?: number;
     created_at: string;
   }>;
   usersMeta: {
@@ -105,11 +107,22 @@ export function AdminClient() {
   const [recentPage, setRecentPage] = useState(1);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(ADMIN_TOKEN_KEY);
-    if (saved) {
-      setToken(saved);
-      setTokenInput(saved);
+    function refreshAuth() {
+      const session = window.localStorage.getItem(SESSION_KEY);
+      const savedAdmin = window.localStorage.getItem(ADMIN_TOKEN_KEY);
+      if (session) setToken(session);
+      else if (savedAdmin) {
+        setToken(savedAdmin);
+        setTokenInput(savedAdmin);
+      } else setToken("");
     }
+    refreshAuth();
+    window.addEventListener("laya-auth-changed", refreshAuth);
+    window.addEventListener("storage", refreshAuth);
+    return () => {
+      window.removeEventListener("laya-auth-changed", refreshAuth);
+      window.removeEventListener("storage", refreshAuth);
+    };
   }, []);
 
   const load = useCallback(async () => {
@@ -145,8 +158,9 @@ export function AdminClient() {
     const t = tokenInput.trim();
     if (!t) {
       window.localStorage.removeItem(ADMIN_TOKEN_KEY);
-      setToken("");
-      setData(null);
+      const session = window.localStorage.getItem(SESSION_KEY);
+      setToken(session || "");
+      if (!session) setData(null);
       return;
     }
     window.localStorage.setItem(ADMIN_TOKEN_KEY, t);
@@ -178,11 +192,18 @@ export function AdminClient() {
     return (
       <div className="space-y-4 rounded-lg border border-line bg-panel p-5">
         <p className="text-sm text-muted">
-          Paste the gateway <code className="font-mono text-ink">ADMIN_TOKEN</code> to open the operator
-          console (users, top-ups, registrations, upstream mode). Token stays in this browser only.
+          Sign in with an admin account (listed in <code className="font-mono text-ink">ADMIN_EMAILS</code>
+          ), or paste the gateway <code className="font-mono text-ink">ADMIN_TOKEN</code>.
         </p>
+        <button
+          type="button"
+          onClick={() => openAuthModal("login")}
+          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg"
+        >
+          Sign in
+        </button>
         <label className="block space-y-1 text-sm">
-          <span className="text-muted">Admin token</span>
+          <span className="text-muted">Or admin token</span>
           <input
             type="password"
             value={tokenInput}
@@ -194,9 +215,9 @@ export function AdminClient() {
         <button
           type="button"
           onClick={saveToken}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg"
+          className="rounded-md border border-line px-4 py-2 text-sm"
         >
-          Unlock admin
+          Unlock with token
         </button>
         <p className="text-xs text-muted">
           Back to{" "}
@@ -210,20 +231,35 @@ export function AdminClient() {
   }
 
   if (error && !data) {
+    const isSession = token.startsWith("sess_");
     return (
       <div className="space-y-3 rounded-lg border border-line bg-panel p-5">
         <p className="text-sm text-accent">{error}</p>
-        <button
-          type="button"
-          className="rounded-md border border-line px-3 py-1.5 text-sm"
-          onClick={() => {
-            window.localStorage.removeItem(ADMIN_TOKEN_KEY);
-            setToken("");
-            setTokenInput("");
-          }}
-        >
-          Clear token
-        </button>
+        <p className="text-sm text-muted">
+          {isSession
+            ? "This signed-in account is not an admin. Sign in as luckinessdueler@gmail.com, or use ADMIN_TOKEN."
+            : "Invalid admin token."}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="rounded-md border border-line px-3 py-1.5 text-sm"
+            onClick={() => openAuthModal("login")}
+          >
+            Sign in
+          </button>
+          <button
+            type="button"
+            className="rounded-md border border-line px-3 py-1.5 text-sm"
+            onClick={() => {
+              window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+              setToken("");
+              setTokenInput("");
+            }}
+          >
+            Clear
+          </button>
+        </div>
       </div>
     );
   }
@@ -255,12 +291,16 @@ export function AdminClient() {
             className="rounded-md border border-line px-3 py-1.5 text-xs text-muted"
             onClick={() => {
               window.localStorage.removeItem(ADMIN_TOKEN_KEY);
-              setToken("");
               setTokenInput("");
-              setData(null);
+              const session = window.localStorage.getItem(SESSION_KEY);
+              if (session) setToken(session);
+              else {
+                setToken("");
+                setData(null);
+              }
             }}
           >
-            Lock
+            Lock token
           </button>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -454,6 +494,7 @@ export function AdminClient() {
                 <div>
                   <p className="font-medium">
                     {u.email}
+                    {u.is_admin ? " · admin" : ""}
                     {u.disabled ? " · disabled" : ""}
                   </p>
                   <p className="font-mono text-xs text-muted">
