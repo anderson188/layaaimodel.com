@@ -93,11 +93,17 @@ export default function Home() {
           Jev is a closed API that works out of the box. Laya is open source, runs locally, and is low latency, and it is weak when one choice question has many labels.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/get-started/" className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
-            Get Started
+          <Link href="/account/" className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
+            Get API key →
           </Link>
-          <Link href="/benchmarks/" className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent">
-            View Benchmarks
+          <Link href="/tools/" className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent">
+            ▶ Try tools
+          </Link>
+          <Link href="/pricing/" className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent">
+            Pricing
+          </Link>
+          <Link href="/get-started/" className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent">
+            Run locally
           </Link>
         </div>
       </section>

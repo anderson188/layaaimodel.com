@@ -1,0 +1,33 @@
+name = "layaaimodel-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-23"
+workers_dev = true
+
+routes = [
+  { pattern = "api.layaaimodel.com", custom_domain = true }
+]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "layaaimodel-api"
+database_id = "118d38f0-fc3f-4a41-a87d-968bb5991e64"
+preview_database_id = "local-layaaimodel-api"
+
+[vars]
+UPSTREAM_MODE = "impossibl"
+CREDITS_PER_INPUT_TOKEN = "1"
+RATE_LIMIT_PER_MINUTE = "60"
+ALERT_RATE_THRESHOLD = "50"
+TOKEN_BURN_CAP_HOUR = "5000000"
+TOKEN_BURN_CAP_DAY = "80000000"
+API_PUBLIC_URL = "https://api.layaaimodel.com"
+SITE_URL = "https://www.layaaimodel.com"
+STRIPE_PRICE_CREDITS = "11900000"
+DEFAULT_SIGNUP_CREDITS = "10000"
+
+# Secrets (set via `wrangler secret put`):
+# IMPOSSIBL_API_KEY
+# ADMIN_TOKEN
+# STRIPE_SECRET_KEY
+# STRIPE_WEBHOOK_SECRET
+# SESSION_PEPPER

@@ -12,11 +12,13 @@ export const UPSTREAM_REPO = "https://github.com/NandhaKishorM/laya";
 
 export const NAV = [
   { href: "/", label: "Home" },
+  { href: "/tools/", label: "Tools" },
+  { href: "/docs/api/", label: "API Docs" },
+  { href: "/pricing/", label: "Pricing" },
   { href: "/get-started/", label: "Get Started" },
   { href: "/benchmarks/", label: "Benchmarks" },
-  { href: "/use-cases/", label: "Use Cases" },
+  { href: "/status/", label: "Status" },
   { href: "/faq/", label: "FAQ" },
-  { href: "/download/", label: "Download" },
 ] as const;
 
 export function canonical(path: string): string {

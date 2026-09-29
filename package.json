@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "smoke:impossibl": "node scripts/impossibl-smoke.mjs",
+    "stripe:setup": "node scripts/stripe-setup-products.mjs",
+    "api:dev": "npm run dev --prefix api",
+    "api:deploy": "npm run deploy --prefix api"
   },
   "dependencies": {
     "next": "16.3.6",

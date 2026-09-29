@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local `wrangler dev`
+IMPOSSIBL_API_KEY=
+ADMIN_TOKEN=dev-admin-token
+SESSION_PEPPER=dev-pepper
+# STRIPE_SECRET_KEY=
+# STRIPE_WEBHOOK_SECRET=

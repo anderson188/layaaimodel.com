@@ -37,6 +37,10 @@ const faqs = [
     q: "Does Laya generate text like a regular LLM?",
     a: "No. The README says there is no text generation, so there is nothing to parse. A call returns structured fields such as choice, score, noul, confidence, and routing metadata. It is the wrong tool when the product needs a written answer. Pair it with a generative model only if you add that model yourself; this site does not ship or run one.",
   },
+  {
+    q: "What is the hosted API on this site?",
+    a: "An unofficial community gateway at api.layaaimodel.com that accepts the same System-1 request shape (state plus typed questions) and proxies inference to a third-party host by default. It mirrors the prepaid product shape of unofficial Jev hosts: Account registration, laya_ keys, $5–$500 token packs, Tools templates (paste your key to spend balance), burn alerts, and /docs/api/. It is not an official Convai, TypeSafe, or Impossibl product. Hosted latency is not the README T4 measurement.",
+  },
 ];
 
 export default function FaqPage() {

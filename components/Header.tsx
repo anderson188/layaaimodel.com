@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { openAuthModal } from "@/components/AuthModal";
+import { apiFetch, SESSION_KEY } from "@/lib/apiClient";
 import { NAV } from "@/lib/site";
 
 function isCurrent(pathname: string, href: string) {
@@ -14,15 +16,54 @@ function isCurrent(pathname: string, href: string) {
 export function Header() {
   const pathname = usePathname();
   const menuRef = useRef<HTMLDetailsElement>(null);
+  const [authed, setAuthed] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function sync() {
+      const token = window.localStorage.getItem(SESSION_KEY);
+      if (!token) {
+        if (!cancelled) {
+          setAuthed(false);
+          setEmail(null);
+        }
+        return;
+      }
+      const me = await apiFetch<{ user: { email: string } }>("/v1/me", { token });
+      if (cancelled) return;
+      if (me.ok) {
+        setAuthed(true);
+        setEmail(me.data.user.email);
+      } else {
+        window.localStorage.removeItem(SESSION_KEY);
+        setAuthed(false);
+        setEmail(null);
+      }
+    }
+    void sync();
+    function onStorage(e: StorageEvent) {
+      if (e.key === SESSION_KEY) void sync();
+    }
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("laya-auth-changed", sync);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("laya-auth-changed", sync);
+    };
+  }, [pathname]);
 
   function closeMenu() {
     if (menuRef.current) menuRef.current.open = false;
   }
 
+  const navItems = NAV.filter((item) => item.href !== "/account/");
+
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-5 py-3">
-        <Link href="/" className="flex items-center gap-2.5 font-semibold tracking-tight text-ink">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-5 py-3">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5 font-semibold tracking-tight text-ink">
           <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
             <rect width="32" height="32" rx="8" fill="#1b1f1c" />
             <path d="M9 7h9.2a6.2 6.2 0 0 1 0 12.4H9V7Z" fill="none" stroke="#3dbe98" strokeWidth="2" />
@@ -30,40 +71,88 @@ export function Header() {
           </svg>
           <span>Laya AI</span>
         </Link>
-        <nav aria-label="Primary">
-          <ul className="hidden items-center gap-0.5 lg:flex">
-            {NAV.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  aria-current={isCurrent(pathname, item.href) ? "page" : undefined}
-                  className="block rounded-md px-2.5 py-1.5 text-sm font-medium text-ink hover:bg-panel aria-[current=page]:bg-panel aria-[current=page]:text-accent"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <details ref={menuRef} className="relative lg:hidden">
-            <summary className="cursor-pointer list-none rounded-full border border-line bg-panel px-3 py-1.5 text-sm font-medium">
-              Menu
-            </summary>
-            <ul className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-line bg-panel p-2 shadow-sm">
-              {NAV.map((item) => (
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          <nav aria-label="Primary" className="min-w-0">
+            <ul className="hidden items-center gap-0.5 lg:flex">
+              {navItems.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    onClick={closeMenu}
                     aria-current={isCurrent(pathname, item.href) ? "page" : undefined}
-                    className="block rounded-md px-2.5 py-1.5 text-sm font-medium text-ink hover:bg-paper aria-[current=page]:text-accent"
+                    className="block rounded-md px-2 py-1.5 text-xs font-medium text-ink hover:bg-panel aria-[current=page]:bg-panel aria-[current=page]:text-accent sm:text-sm"
                   >
                     {item.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </details>
-        </nav>
+            <details ref={menuRef} className="relative lg:hidden">
+              <summary className="cursor-pointer list-none rounded-full border border-line bg-panel px-3 py-1.5 text-sm font-medium">
+                Menu
+              </summary>
+              <ul className="absolute right-0 z-20 mt-2 w-52 rounded-lg border border-line bg-panel p-2 shadow-sm">
+                {navItems.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={closeMenu}
+                      aria-current={isCurrent(pathname, item.href) ? "page" : undefined}
+                      className="block rounded-md px-2.5 py-1.5 text-sm font-medium text-ink hover:bg-paper aria-[current=page]:text-accent"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+                <li className="my-1 border-t border-line" />
+                {authed ? (
+                  <li>
+                    <Link
+                      href="/account/"
+                      onClick={closeMenu}
+                      className="block rounded-md px-2.5 py-1.5 text-sm font-medium text-accent"
+                    >
+                      Account
+                    </Link>
+                  </li>
+                ) : (
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeMenu();
+                        openAuthModal("login");
+                      }}
+                      className="block w-full rounded-md px-2.5 py-1.5 text-left text-sm font-medium text-accent"
+                    >
+                      Sign in
+                    </button>
+                  </li>
+                )}
+              </ul>
+            </details>
+          </nav>
+
+          <div className="hidden items-center gap-2 lg:flex">
+            {authed ? (
+              <Link
+                href="/account/"
+                className="max-w-[10rem] truncate rounded-md border border-line bg-panel px-3 py-1.5 text-sm font-medium text-ink hover:border-accent"
+                title={email ?? "Account"}
+              >
+                {email ?? "Account"}
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg hover:opacity-90"
+              >
+                Sign in
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </header>
   );

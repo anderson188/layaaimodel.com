@@ -33,3 +33,20 @@ Repository secrets:
 Attach the custom domain `layaaimodel.com` on the Pages project after the first successful deploy. DNS for that domain needs to be on the same Cloudflare account.
 
 Dashboard alternative, if you connect the Git repository directly: build command `npm run build`, output directory `out`, production branch `main`. Use either the Action or the dashboard Git connection, not both.
+
+## Hosted API gateway (`api/`)
+
+Cloudflare Worker that authenticates customer `laya_…` keys, meters prepaid credits, and proxies `POST /v1/systemone` to Impossibl's free Laya models. See [api/README.md](api/README.md).
+
+```bash
+npm run smoke:impossibl
+cd api && npm install && npx wrangler d1 create layaaimodel-api
+# paste database_id into api/wrangler.toml, then:
+npm run db:remote
+npx wrangler secret put IMPOSSIBL_API_KEY
+npx wrangler secret put ADMIN_TOKEN
+npx wrangler secret put SESSION_PEPPER
+npm run deploy
+```
+
+Site pages: `/api/` (docs), `/console/` (keys + Stripe packs), `/status/` (upstream mode and probes).

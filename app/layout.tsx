@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { AuthModal } from "@/components/AuthModal";
 import { Header } from "@/components/Header";
 import { DISCLAIMER, SITE_DESCRIPTION, SITE_TITLE, SITE_URL, UPSTREAM_REPO } from "@/lib/site";
 import "./globals.css";
@@ -44,15 +45,24 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to content
         </a>
         <Header />
+        <AuthModal />
         <main id="content" className="mx-auto w-full max-w-5xl flex-1 px-5 py-12 sm:py-16">
           {children}
         </main>
         <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-panel/95 backdrop-blur">
           <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 px-5 py-2.5 text-center text-xs text-muted sm:flex-row sm:items-center sm:justify-between sm:text-left">
             <p>{DISCLAIMER}</p>
-            <a className="text-accent hover:underline" href={UPSTREAM_REPO}>
-              Upstream repository
-            </a>
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:justify-end">
+              <a className="text-accent hover:underline" href="/terms/">
+                Terms
+              </a>
+              <a className="text-accent hover:underline" href="/privacy/">
+                Privacy
+              </a>
+              <a className="text-accent hover:underline" href={UPSTREAM_REPO}>
+                Upstream repository
+              </a>
+            </div>
           </div>
         </footer>
       </body>

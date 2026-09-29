@@ -1,0 +1,48 @@
+{
+  "mode": "live",
+  "created_at": "2026-09-29T13:21:05.705Z",
+  "prices": {
+    "starter_5": {
+      "product_id": "prod_VLiOMVJBm1DGZ8",
+      "price_id": "price_1UL0y02FN6xQyCbHzsusvPjO",
+      "usd": 5,
+      "tokens": 11900000
+    },
+    "pack_10": {
+      "product_id": "prod_VLiOyqYIYuSeIx",
+      "price_id": "price_1UL0y12FN6xQyCbHNMhG1Ef3",
+      "usd": 10,
+      "tokens": 23800000
+    },
+    "pack_20": {
+      "product_id": "prod_VLiO2GzkqHWL1U",
+      "price_id": "price_1UL0y22FN6xQyCbHMeZO5hqG",
+      "usd": 20,
+      "tokens": 47600000
+    },
+    "staging_50": {
+      "product_id": "prod_VLiOeSCWHxcHpQ",
+      "price_id": "price_1UL0y42FN6xQyCbHMO2azlM2",
+      "usd": 50,
+      "tokens": 142900000
+    },
+    "popular_100": {
+      "product_id": "prod_VLiOkNstEjTj8y",
+      "price_id": "price_1UL0y52FN6xQyCbHbKiR9Jdf",
+      "usd": 100,
+      "tokens": 400000000
+    },
+    "scale_250": {
+      "product_id": "prod_VLiOapZv9h3R6R",
+      "price_id": "price_1UL0y72FN6xQyCbHSkfJ4CNM",
+      "usd": 250,
+      "tokens": 1136400000
+    },
+    "volume_500": {
+      "product_id": "prod_VLiOBNHCt8boML",
+      "price_id": "price_1UL0y82FN6xQyCbHZKqfpV4t",
+      "usd": 500,
+      "tokens": 2500000000
+    }
+  }
+}
