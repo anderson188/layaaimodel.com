@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { openAuthModal } from "@/components/AuthModal";
 import { API_BASE_URL, API_DISCLAIMER } from "@/lib/api";
 import { apiFetch, SESSION_KEY } from "@/lib/apiClient";
-import { CREDIT_PACKS } from "@/lib/pricing";
+import { approxDecideCalls, CREDIT_PACKS } from "@/lib/pricing";
 
 type User = {
   id: string;
@@ -258,17 +258,32 @@ export function AccountClient() {
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold tracking-tight">Quick top-up</h2>
-        <div className="flex flex-wrap gap-2">
-          {CREDIT_PACKS.slice(0, 4).map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              disabled={busy}
-              onClick={() => checkout(p.id)}
-              className="rounded-md border border-line bg-panel px-3 py-1.5 text-sm font-medium disabled:opacity-60"
-            >
-              ${p.usd}
-            </button>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {CREDIT_PACKS.map((pack) => (
+            <div key={pack.id} className="flex flex-col rounded-lg border border-line bg-panel p-5 shadow-glow">
+              <div className="flex items-baseline justify-between gap-2">
+                <h3 className="text-lg font-semibold text-ink">{pack.label}</h3>
+                {pack.badge ? (
+                  <span className="text-xs font-medium text-accent">{pack.badge}</span>
+                ) : null}
+              </div>
+              <p className="mt-2 text-3xl font-semibold tracking-tight text-ink">${pack.usd}</p>
+              <p className="mt-2 text-sm text-muted">
+                ≈ {pack.tokens.toLocaleString()} input tokens · ${pack.ratePerM}/M
+              </p>
+              <p className="mt-1 text-xs text-muted">
+                ≈ {approxDecideCalls(pack.tokens).toLocaleString()} typical /decide calls · {pack.rpm}{" "}
+                RPM
+              </p>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => checkout(pack.id)}
+                className="mt-4 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-fg disabled:opacity-60"
+              >
+                {busy ? "Redirecting…" : `Buy $${pack.usd} →`}
+              </button>
+            </div>
           ))}
         </div>
       </section>
