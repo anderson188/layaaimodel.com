@@ -17,6 +17,9 @@ export interface Env {
   SITE_URL: string;
   STRIPE_PRICE_CREDITS: string;
   DEFAULT_SIGNUP_CREDITS: string;
+  RESEND_API_KEY?: string;
+  /** e.g. "Laya AI Alerts <alerts@layaaimodel.com>" — defaults to Resend onboarding sender */
+  RESEND_FROM?: string;
 }
 
 export const ALLOWED_MODELS = {

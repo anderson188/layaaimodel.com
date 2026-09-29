@@ -26,6 +26,7 @@ import { runDecide, runGate } from "./decide";
 import type { Env } from "./env";
 import { ANON_FREE_TOOL_RUNS, CREDIT_PACKS, MONTHLY_FREE_TOKENS } from "./packs";
 import { createCheckoutSession, handleStripeWebhook } from "./stripe";
+import { notifyAdmins, registrationNotifyText } from "./notify";
 import { findToolHandler } from "./toolHandlers";
 import {
   bearerToken,
@@ -160,13 +161,20 @@ async function handleTool(env: Env, req: Request, path: string): Promise<Respons
   });
 }
 
-async function handleRegister(env: Env, req: Request): Promise<Response> {
+async function handleRegister(env: Env, req: Request, ctx?: ExecutionContext): Promise<Response> {
   const body = (await req.json().catch(() => null)) as { email?: string; password?: string } | null;
   if (!body?.email || !body?.password) return error("`email` and `password` are required", 400);
   if (body.password.length < 8) return error("Password must be at least 8 characters", 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) return error("Invalid email", 400);
   try {
     const { user, sessionToken } = await createUser(env, body.email, body.password);
+    const notify = notifyAdmins(
+      env,
+      `New registration: ${user.email}`,
+      registrationNotifyText(user.email, user.credits, user.id),
+    );
+    if (ctx) ctx.waitUntil(notify);
+    else void notify;
     return json(
       {
         user: {
@@ -387,7 +395,7 @@ async function handleStatus(env: Env): Promise<Response> {
 }
 
 export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
+  async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url);
     const origin = req.headers.get("Origin");
     const path = url.pathname.replace(/\/+$/, "") || "/";
@@ -416,7 +424,7 @@ export default {
       } else if (req.method === "POST" && findToolHandler(path)) {
         res = await handleTool(env, req, path);
       } else if (req.method === "POST" && path === "/v1/auth/register") {
-        res = await handleRegister(env, req);
+        res = await handleRegister(env, req, ctx);
       } else if (req.method === "POST" && path === "/v1/auth/login") {
         res = await handleLogin(env, req);
       } else if (req.method === "GET" && path === "/v1/me") {
@@ -438,7 +446,7 @@ export default {
       } else if (req.method === "POST" && path === "/v1/billing/checkout") {
         res = await handleCheckout(env, req);
       } else if (req.method === "POST" && path === "/v1/billing/webhook") {
-        res = await handleStripeWebhook(env, req);
+        res = await handleStripeWebhook(env, req, ctx);
       } else if (req.method === "GET" && path === "/v1/admin/overview") {
         res = await handleAdminOverview(env, req);
       } else if (req.method === "POST" && path === "/v1/admin/action") {

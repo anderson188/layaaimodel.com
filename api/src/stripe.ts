@@ -1,5 +1,6 @@
 import type { Env } from "./env";
 import { addCredits, setUserPack } from "./db";
+import { notifyAdmins, rechargeNotifyText } from "./notify";
 import { packById } from "./packs";
 import priceMap from "../stripe-prices.json";
 import { nowIso } from "./util";
@@ -114,11 +115,16 @@ type StripeEvent = {
       client_reference_id?: string | null;
       metadata?: Record<string, string>;
       payment_status?: string;
+      customer_email?: string | null;
     };
   };
 };
 
-export async function handleStripeWebhook(env: Env, req: Request): Promise<Response> {
+export async function handleStripeWebhook(
+  env: Env,
+  req: Request,
+  ctx?: ExecutionContext,
+): Promise<Response> {
   if (!env.STRIPE_WEBHOOK_SECRET || !env.STRIPE_SECRET_KEY) {
     return new Response("Stripe webhook not configured", { status: 503 });
   }
@@ -135,7 +141,7 @@ export async function handleStripeWebhook(env: Env, req: Request): Promise<Respo
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
     const userId = session.client_reference_id || session.metadata?.user_id;
-    const packId = session.metadata?.pack_id;
+    const packId = session.metadata?.pack_id ?? null;
     const pack = packId ? packById(packId) : undefined;
     const credits = Number.parseInt(
       session.metadata?.credits || String(pack?.tokens || env.STRIPE_PRICE_CREDITS || "11900000"),
@@ -144,6 +150,23 @@ export async function handleStripeWebhook(env: Env, req: Request): Promise<Respo
     if (userId && credits > 0 && session.payment_status !== "unpaid") {
       await addCredits(env, userId, credits, "stripe_checkout", session.id);
       if (packId) await setUserPack(env, userId, packId);
+
+      const user = await env.DB.prepare("SELECT email FROM users WHERE id = ?")
+        .bind(userId)
+        .first<{ email: string }>();
+      const notify = notifyAdmins(
+        env,
+        `Recharge: ${user?.email ?? userId} +${credits.toLocaleString()}`,
+        rechargeNotifyText({
+          email: user?.email ?? "(unknown)",
+          userId,
+          packId,
+          credits,
+          sessionId: session.id,
+        }),
+      );
+      if (ctx) ctx.waitUntil(notify);
+      else void notify;
     }
   }
 

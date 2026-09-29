@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "smoke:impossibl": "node scripts/impossibl-smoke.mjs",
+    "smoke:gateway": "node scripts/gateway-smoke.mjs",
     "stripe:setup": "node scripts/stripe-setup-products.mjs",
     "api:dev": "npm run dev --prefix api",
     "api:deploy": "npm run deploy --prefix api"
