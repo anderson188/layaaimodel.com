@@ -7,7 +7,7 @@ import { PageTitle } from "@/components/PageTitle";
 import { VideoGallery } from "@/components/VideoGallery";
 import { caholBanking, luniPhishing, luniTyped, routedVsJev } from "@/lib/benchmarks";
 import { HOME_PREVIEW, PIP_INSTALL } from "@/lib/snippets";
-import { canonical, HOME_DESCRIPTION, SITE_DESCRIPTION, SITE_TITLE, UPSTREAM_REPO } from "@/lib/site";
+import { canonical, HOME_DESCRIPTION, SITE_DESCRIPTION, SITE_OG_IMAGE, SITE_TITLE, UPSTREAM_REPO } from "@/lib/site";
 import { COMMUNITY_VIDEOS, youtubeThumbUrl, youtubeWatchUrl } from "@/lib/videos";
 
 export const metadata: Metadata = {
@@ -18,6 +18,20 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: HOME_DESCRIPTION,
     url: canonical("/"),
+    images: [
+      {
+        url: SITE_OG_IMAGE,
+        width: 2028,
+        height: 1310,
+        alt: "Official Laya vs TypeSafe Jev benchmark comparison chart",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: HOME_DESCRIPTION,
+    images: [SITE_OG_IMAGE],
   },
 };
 
