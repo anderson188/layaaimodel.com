@@ -46,11 +46,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <Header />
         <AuthModal />
-        <main id="content" className="mx-auto w-full max-w-5xl flex-1 px-5 py-12 sm:py-16">
+        <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-5 py-12 sm:py-16">
           {children}
         </main>
         <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-panel/95 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 px-5 py-2.5 text-center text-xs text-muted sm:flex-row sm:items-center sm:justify-between sm:text-left">
+          <div className="mx-auto flex w-full max-w-6xl flex-col gap-1 px-5 py-2.5 text-center text-xs text-muted sm:flex-row sm:items-center sm:justify-between sm:text-left">
             <p>{DISCLAIMER}</p>
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:justify-end">
               <a className="text-accent hover:underline" href="/terms/">
