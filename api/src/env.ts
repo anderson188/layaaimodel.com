@@ -18,8 +18,10 @@ export interface Env {
   STRIPE_PRICE_CREDITS: string;
   DEFAULT_SIGNUP_CREDITS: string;
   RESEND_API_KEY?: string;
-  /** e.g. "Laya AI Alerts <alerts@layaaimodel.com>" — defaults to Resend onboarding sender */
+  /** e.g. "Laya AI <support@layaaimodel.com>" */
   RESEND_FROM?: string;
+  /** Comma-separated inbox for register/recharge alerts (defaults to ADMIN_EMAILS). */
+  ADMIN_NOTIFY_EMAILS?: string;
 }
 
 export const ALLOWED_MODELS = {

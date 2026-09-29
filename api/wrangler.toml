@@ -25,6 +25,8 @@ SITE_URL = "https://www.layaaimodel.com"
 STRIPE_PRICE_CREDITS = "11900000"
 DEFAULT_SIGNUP_CREDITS = "10000"
 ADMIN_EMAILS = "luckinessdueler@gmail.com"
+ADMIN_NOTIFY_EMAILS = "2420133012@qq.com"
+RESEND_FROM = "Laya AI <support@layaaimodel.com>"
 
 # Secrets (set via `wrangler secret put`):
 # IMPOSSIBL_API_KEY
@@ -32,3 +34,4 @@ ADMIN_EMAILS = "luckinessdueler@gmail.com"
 # STRIPE_SECRET_KEY
 # STRIPE_WEBHOOK_SECRET
 # SESSION_PEPPER
+# RESEND_API_KEY
