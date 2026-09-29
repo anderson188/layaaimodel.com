@@ -3,19 +3,20 @@ import { PageTitle } from "@/components/PageTitle";
 import { canonical, UPSTREAM_REPO } from "@/lib/site";
 
 export const metadata: Metadata = {
+  title: "FAQ",
   description:
-    "FAQ for the Laya system one model: LayaAir, whether Laya can replace Jev, Banking77 limits, and the Apache 2.0 license.",
+    "FAQ for the Laya System One model: LayaAir, whether Laya can replace Jev, Banking77 limits, and the Apache 2.0 license.",
   alternates: { canonical: canonical("/faq/") },
 };
 
 const faqs = [
   {
     q: "Is Laya the same as LayaAir game engine?",
-    a: "No. LayaAir is a game engine. Laya in this documentation is the System 1 decision model in the Convai Innovations repository NandhaKishorM/laya. The pages here use the full name Laya AI - Open Source System-1 Decision Model so the two projects are not mixed up. This site is not affiliated with either project.",
+    a: "No. LayaAir is a game engine. Laya in this documentation is the System One decision model in the Convai Innovations repository NandhaKishorM/laya. The pages here use the full name Laya AI - Open Source System One Decision Model so the two projects are not mixed up. This site is not affiliated with either project.",
   },
   {
     q: "What is Laya AI Model?",
-    a: "The README calls it a multilingual, non-autoregressive System 1 decision engine. It scores typed questions — choice, score, and noul — over a state such as text, email, a ticket, or a JSON document, in one forward pass. It does not write free text. Three checkpoints ship with a Router that picks among them: laya for English, laya-multilingual for 100+ languages, and laya-typed-decisions for the typed-decisions workflows.",
+    a: "The README calls it a multilingual, non-autoregressive System One decision engine. It scores typed questions — choice, score, and noul — over a state such as text, email, a ticket, or a JSON document, in one forward pass. It does not write free text. Three checkpoints ship with a Router that picks among them: laya for English, laya-multilingual for 100+ languages, and laya-typed-decisions for the typed-decisions workflows.",
   },
   {
     q: "Can Laya fully replace Jev?",
@@ -39,7 +40,7 @@ const faqs = [
   },
   {
     q: "What is the hosted API on this site?",
-    a: "An unofficial community gateway at api.layaaimodel.com that accepts the same System-1 request shape (state plus typed questions) and proxies inference to a third-party host by default. It mirrors the prepaid product shape of unofficial Jev hosts: Account registration, laya_ keys, $5–$500 token packs, Tools templates (paste your key to spend balance), burn alerts, and /docs/api/. It is not an official Convai, TypeSafe, or Impossibl product. Hosted latency is not the README T4 measurement.",
+    a: "An unofficial community gateway at api.layaaimodel.com that accepts the same System One request shape (state plus typed questions) and proxies inference to a third-party host by default. It mirrors the prepaid product shape of unofficial Jev hosts: Account registration, laya_ keys, $5–$500 token packs, Tools templates (paste your key to spend balance), burn alerts, and /docs/api/. It is not an official Convai, TypeSafe, or Impossibl product. Hosted latency is not the README T4 measurement.",
   },
 ];
 

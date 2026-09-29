@@ -4,6 +4,7 @@ import { PageTitle } from "@/components/PageTitle";
 import { canonical } from "@/lib/site";
 
 export const metadata: Metadata = {
+  title: "Account",
   description:
     "Laya account: register, create laya_ keys, buy prepaid packs, monitor usage, and configure burn alerts.",
   alternates: { canonical: canonical("/account/") },

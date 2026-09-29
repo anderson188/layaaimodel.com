@@ -1,6 +1,6 @@
 # layaaimodel.com
 
-Unofficial community documentation for [Laya](https://github.com/NandhaKishorM/laya), an open source System-1 decision model. This site is not affiliated with Convai Innovations and is not the LayaAir game engine.
+Unofficial community documentation for [Laya](https://github.com/NandhaKishorM/laya), an open source System One decision model. This site is not affiliated with Convai Innovations and is not the LayaAir game engine.
 
 Pages are static English docs. There is no in-browser inference demo. Benchmark figures are transcribed from the upstream README and `BENCHMARKS.md`.
 

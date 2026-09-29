@@ -23,6 +23,7 @@ import {
 import { canonical, UPSTREAM_REPO } from "@/lib/site";
 
 export const metadata: Metadata = {
+  title: "Laya benchmark",
   description:
     "Laya benchmark, and a Laya vs Jev benchmark explained: why official self-test scores and Hugging Face community scores do not match.",
   alternates: { canonical: canonical("/benchmarks/") },

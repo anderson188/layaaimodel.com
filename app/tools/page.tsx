@@ -4,6 +4,7 @@ import { ToolsClient } from "@/components/ToolsClient";
 import { canonical } from "@/lib/site";
 
 export const metadata: Metadata = {
+  title: "Decision templates",
   description:
     "Laya decision templates: support triage, moderation, leads, agent risk, and more. Paste a laya_ key or use 5 free anonymous runs.",
   alternates: { canonical: canonical("/tools/") },

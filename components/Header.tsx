@@ -68,11 +68,7 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-5 py-3">
         <Link href="/" className="flex shrink-0 items-center gap-2.5 font-semibold tracking-tight text-ink">
-          <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
-            <rect width="32" height="32" rx="8" fill="#1b1f1c" />
-            <path d="M9 7h9.2a6.2 6.2 0 0 1 0 12.4H9V7Z" fill="none" stroke="#3dbe98" strokeWidth="2" />
-            <path d="M9 13.2h7.2" stroke="#3dbe98" strokeWidth="2" />
-          </svg>
+          <img src="/official/logo-mark.svg" alt="" width={28} height={28} className="h-7 w-7" />
           <span>Laya AI</span>
         </Link>
 

@@ -4,6 +4,7 @@ import { PricingClient } from "@/components/PricingClient";
 import { canonical } from "@/lib/site";
 
 export const metadata: Metadata = {
+  title: "Pricing",
   description:
     "Laya hosted API pricing: prepaid input-token packs from $5–$500. Output free. Same balance for /v1/decide and tools.",
   alternates: { canonical: canonical("/pricing/") },

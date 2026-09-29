@@ -4,8 +4,9 @@ import { StatusClient } from "@/components/StatusClient";
 import { canonical } from "@/lib/site";
 
 export const metadata: Metadata = {
+  title: "Gateway status",
   description:
-    "Operational status for the unofficial Laya System-1 API gateway: upstream mode, catalog pricing probe, and recent error rates.",
+    "Operational status for the unofficial Laya System One API gateway: upstream mode, catalog pricing probe, and recent error rates.",
   alternates: { canonical: canonical("/status/") },
 };
 

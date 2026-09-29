@@ -15,6 +15,7 @@ import {
 import { canonical } from "@/lib/site";
 
 export const metadata: Metadata = {
+  title: "Run Laya locally",
   description:
     "Run Laya locally: pip install laya, Python 3.10+, checkpoint sizes, preload memory pitfalls, and the README Router example.",
   alternates: { canonical: canonical("/get-started/") },

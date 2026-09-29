@@ -3,6 +3,9 @@ import { PageTitle } from "@/components/PageTitle";
 import { canonical, UPSTREAM_REPO } from "@/lib/site";
 
 export const metadata: Metadata = {
+  title: "Download",
+  description:
+    "Download Laya: GitHub repo, PyPI package, release wheels, and Hugging Face checkpoints for English and multilingual models.",
   alternates: { canonical: canonical("/download/") },
 };
 

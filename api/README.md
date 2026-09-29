@@ -1,6 +1,6 @@
 # layaaimodel-api
 
-Cloudflare Worker gateway that authenticates customer `laya_…` keys, meters prepaid packs (same ladder as [jevtypesafe.org/pricing](https://jevtypesafe.org/pricing)), and proxies System-1 calls to Impossibl's Laya models.
+Cloudflare Worker gateway that authenticates customer `laya_…` keys, meters prepaid packs (same ladder as [jevtypesafe.org/pricing](https://jevtypesafe.org/pricing)), and proxies System One calls to Impossibl's Laya models.
 
 ## Product surface
 

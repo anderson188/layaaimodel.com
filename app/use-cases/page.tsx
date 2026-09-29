@@ -3,6 +3,7 @@ import { PageTitle } from "@/components/PageTitle";
 import { canonical } from "@/lib/site";
 
 export const metadata: Metadata = {
+  title: "Use cases",
   description:
     "When to choose Laya and when to keep Jev: local open-source routing versus a closed API for wide label sets.",
   alternates: { canonical: canonical("/use-cases/") },

@@ -4,6 +4,7 @@ import { PageTitle } from "@/components/PageTitle";
 import { canonical, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
+  title: "Terms",
   description:
     "Terms of use for the unofficial Laya AI community site and prepaid API gateway at layaaimodel.com.",
   alternates: { canonical: canonical("/terms/") },

@@ -11,7 +11,7 @@ export const COMMUNITY_VIDEOS: CommunityVideo[] = [
     id: "UoRNo5LoDRE",
     title: "Laya: Open-Source Counterpart to Jev | Multilingual System 1 Model for Fast AI Decisions",
     channel: "Mohamed Naji Aboo",
-    note: "Overview of Laya as a multilingual System 1 decision model.",
+    note: "Overview of Laya as a multilingual System One decision model.",
   },
   {
     id: "kWToHpdxScE",
@@ -29,7 +29,7 @@ export const COMMUNITY_VIDEOS: CommunityVideo[] = [
     id: "cGhKKRHhYqs",
     title: "Run This Powerful Jev AI on Your Laptop for $0",
     channel: "Edwin Chen | AI Automation",
-    note: "Local setup angle for the open System 1 model you can run without an API key.",
+    note: "Local setup angle for the open System One model you can run without an API key.",
   },
 ];
 

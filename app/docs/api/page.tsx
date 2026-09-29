@@ -7,6 +7,7 @@ import { API_BASE_URL, API_DISCLAIMER } from "@/lib/api";
 import { canonical } from "@/lib/site";
 
 export const metadata: Metadata = {
+  title: "API reference",
   description:
     "Laya hosted API reference: /v1/decide, batch, gate, ready-made tools, auth, metering, and errors. Instant laya_ keys.",
   alternates: { canonical: canonical("/docs/api/") },

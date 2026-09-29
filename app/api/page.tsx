@@ -4,6 +4,7 @@ import { PageTitle } from "@/components/PageTitle";
 import { canonical } from "@/lib/site";
 
 export const metadata: Metadata = {
+  title: "Hosted API",
   description: "Hosted Laya API overview — see the full reference under /docs/api/.",
   alternates: { canonical: canonical("/api/") },
 };
@@ -13,7 +14,7 @@ export default function ApiOverviewPage() {
     <div className="space-y-8">
       <PageTitle
         section="Hosted API"
-        lede="Unofficial Laya System-1 HTTP API with prepaid metering, tools, and account console."
+        lede="Unofficial Laya System One HTTP API with prepaid metering, tools, and account console."
       />
       <p className="max-w-3xl text-sm leading-relaxed text-muted">
         Full endpoint reference, examples, batch, gate, and ready-made tools live on the{" "}
