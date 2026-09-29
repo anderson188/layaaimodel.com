@@ -161,7 +161,7 @@ export default function ApiDocsPage() {
 
       <ScrollSpyDocs items={[...TOC]}>
         <div className="space-y-12">
-          <section id="disclaimer" className="scroll-mt-24 space-y-3 rounded-lg border border-line bg-panel px-5 py-4">
+          <section id="disclaimer" className="scroll-mt-24 space-y-3 rounded-lg border border-line bg-panel px-5 py-4 shadow-glow">
             <h2 className="text-base font-semibold text-ink">Disclaimer</h2>
             <p className="max-w-3xl text-sm leading-relaxed text-muted">{API_DISCLAIMER}</p>
             <p className="max-w-3xl text-sm leading-relaxed text-muted">

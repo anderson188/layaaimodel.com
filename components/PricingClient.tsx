@@ -45,15 +45,15 @@ export function PricingClient() {
   return (
     <div className="space-y-10">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-lg border border-line bg-panel px-4 py-3">
+        <div className="rounded-lg border border-line bg-panel px-4 py-3 shadow-glow">
           <p className="text-xs uppercase tracking-wide text-muted">Input tokens</p>
           <p className="mt-1 text-lg font-semibold text-ink">$0.20–$0.42/M</p>
         </div>
-        <div className="rounded-lg border border-line bg-panel px-4 py-3">
+        <div className="rounded-lg border border-line bg-panel px-4 py-3 shadow-glow">
           <p className="text-xs uppercase tracking-wide text-muted">Output tokens</p>
           <p className="mt-1 text-lg font-semibold text-ink">Free</p>
         </div>
-        <div className="rounded-lg border border-line bg-panel px-4 py-3">
+        <div className="rounded-lg border border-line bg-panel px-4 py-3 shadow-glow">
           <p className="text-xs uppercase tracking-wide text-muted">Per decision (avg)</p>
           <p className="mt-1 text-lg font-semibold text-ink">≈$0.0004</p>
         </div>
@@ -63,7 +63,7 @@ export function PricingClient() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {CREDIT_PACKS.map((pack) => (
-          <div key={pack.id} className="flex flex-col rounded-lg border border-line bg-panel p-5">
+          <div key={pack.id} className="flex flex-col rounded-lg border border-line bg-panel p-5 shadow-glow">
             <div className="flex items-baseline justify-between gap-2">
               <h3 className="text-lg font-semibold text-ink">{pack.label}</h3>
               {pack.badge ? (

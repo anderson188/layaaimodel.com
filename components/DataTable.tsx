@@ -14,7 +14,7 @@ export function DataTable({
   rows: string[][];
 }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-line">
+    <div className="overflow-x-auto rounded-lg border border-line shadow-glow">
       <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
         <caption className="border-b border-line bg-panel px-4 py-3 text-left text-sm text-muted">
           {caption}

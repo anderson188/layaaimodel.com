@@ -162,7 +162,7 @@ export function PlaygroundResultCards({
             : parsed.pct;
 
         return (
-          <li key={rf.key} className="rounded-lg border border-line bg-paper/60 px-3.5 py-3">
+          <li key={rf.key} className="rounded-lg border border-line bg-paper/60 px-3.5 py-3 shadow-glow">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="rounded border border-line px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-muted">

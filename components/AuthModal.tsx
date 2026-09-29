@@ -83,7 +83,7 @@ export function AuthModal() {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative z-10 w-full max-w-md rounded-xl border border-line bg-panel p-5 shadow-lg sm:p-6"
+        className="relative z-10 w-full max-w-md rounded-xl border border-line bg-panel p-5 shadow-glow sm:p-6"
       >
         <div className="flex items-start justify-between gap-3">
           <h2 id={titleId} className="text-lg font-semibold text-ink">

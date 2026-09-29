@@ -15,7 +15,7 @@ export function VideoGallery() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {COMMUNITY_VIDEOS.map((video) => (
-          <article key={video.id} className="overflow-hidden rounded-lg border border-line bg-panel">
+          <article key={video.id} className="overflow-hidden rounded-lg border border-line bg-panel shadow-glow">
             <div className="aspect-video bg-code">
               <iframe
                 title={video.title}

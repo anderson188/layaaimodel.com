@@ -64,7 +64,7 @@ export default function DownloadPage() {
           <a
             key={item.href}
             href={item.href}
-            className="rounded-lg border border-line bg-panel p-5 hover:border-accent"
+            className="rounded-lg border border-line bg-panel p-5 shadow-glow hover:border-accent"
           >
             <h2 className="text-base font-medium text-ink">{item.title}</h2>
             <p className="mt-1 font-mono text-xs text-accent">{item.href}</p>

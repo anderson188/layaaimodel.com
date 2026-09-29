@@ -53,7 +53,7 @@ export default function FaqPage() {
       />
       <div className="space-y-3">
         {faqs.map((item) => (
-          <details key={item.q} className="rounded-lg border border-line bg-panel px-5 py-4" open>
+          <details key={item.q} className="rounded-lg border border-line bg-panel px-5 py-4 shadow-glow" open>
             <summary className="cursor-pointer text-base font-medium text-ink">{item.q}</summary>
             <p className="mt-3 text-sm leading-relaxed text-muted">{item.a}</p>
           </details>

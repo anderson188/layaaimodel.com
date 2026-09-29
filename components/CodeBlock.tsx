@@ -25,7 +25,7 @@ export function CodeBlock({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-line bg-code">
+    <div className="overflow-hidden rounded-lg border border-line bg-code shadow-glow">
       <div className="flex items-center justify-between gap-3 border-b border-line px-3 py-1.5">
         <span className="font-mono text-xs text-muted">{label}</span>
         <button

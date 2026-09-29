@@ -108,7 +108,7 @@ export function HomePlayground() {
   return (
     <section
       id="playground"
-      className="overflow-hidden rounded-xl border border-line bg-panel shadow-[0_0_0_1px_color-mix(in_oklab,var(--color-accent)_12%,transparent),0_24px_48px_-28px_color-mix(in_oklab,var(--color-accent)_35%,transparent)]"
+      className="overflow-hidden rounded-xl border border-line bg-panel shadow-glow"
     >
       <header className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-4 py-4 sm:px-5">
         <div>

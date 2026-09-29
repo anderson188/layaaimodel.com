@@ -164,7 +164,7 @@ export function ToolsClient({ initialSlug }: { initialSlug?: string }) {
           </select>
         </label>
 
-        <section className="space-y-4 rounded-lg border border-line bg-panel p-5">
+        <section className="space-y-4 rounded-lg border border-line bg-panel p-5 shadow-glow">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <div>
               <h2 className="text-xl font-semibold tracking-tight">{tool.title}</h2>
@@ -214,7 +214,7 @@ export function ToolsClient({ initialSlug }: { initialSlug?: string }) {
           </button>
           {error ? <p className="text-sm text-accent">{error}</p> : null}
           {result ? (
-            <pre className="overflow-x-auto rounded-md border border-line bg-code p-4 text-xs leading-relaxed text-ink">
+            <pre className="overflow-x-auto rounded-md border border-line bg-code p-4 text-xs leading-relaxed text-ink shadow-glow">
               {JSON.stringify(result, null, 2)}
             </pre>
           ) : null}

@@ -69,7 +69,7 @@ export default function UseCasesPage() {
         lede="When the published tables point at Laya, and when they point at Jev. Task notes below use the README limits and the benchmark files."
       />
       <div className="grid gap-4 md:grid-cols-2">
-        <article id="when-laya" className="scroll-mt-24 rounded-lg border border-line bg-panel p-5">
+        <article id="when-laya" className="scroll-mt-24 rounded-lg border border-line bg-panel p-5 shadow-glow">
           <h2 className="text-lg font-semibold text-ink">When to choose Laya</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted">
             <li>You need to run the model on your own machine, with Apache 2.0 weights, and the README comparison lists self-hosted cost as $0.</li>
@@ -78,7 +78,7 @@ export default function UseCasesPage() {
             <li>Latency on a local GPU matters. The official one-question multilingual figure is 32.8 ms on a T4.</li>
           </ul>
         </article>
-        <article id="when-jev" className="scroll-mt-24 rounded-lg border border-line bg-panel p-5">
+        <article id="when-jev" className="scroll-mt-24 rounded-lg border border-line bg-panel p-5 shadow-glow">
           <h2 className="text-lg font-semibold text-ink">When to keep Jev</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted">
             <li>You want a closed API that is already specialized, without a fine-tune step. Base Laya is under the majority-class line on typed-decisions.</li>
@@ -89,7 +89,7 @@ export default function UseCasesPage() {
       </div>
       <div className="grid gap-4">
         {cases.map((item) => (
-          <article key={item.id} id={item.id} className="scroll-mt-24 rounded-lg border border-line bg-panel p-5">
+          <article key={item.id} id={item.id} className="scroll-mt-24 rounded-lg border border-line bg-panel p-5 shadow-glow">
             <h2 className="text-lg font-semibold text-ink">{item.title}</h2>
             <div className="mt-4 grid gap-6 md:grid-cols-2">
               <div>

@@ -260,12 +260,12 @@ export function ConsoleClient() {
           </button>
         </div>
         {newKey ? (
-          <p className="rounded-lg border border-accent/40 bg-panel px-4 py-3 font-mono text-sm text-ink">
+          <p className="rounded-lg border border-accent/40 bg-panel px-4 py-3 font-mono text-sm text-ink shadow-glow">
             {newKey}
             <span className="mt-1 block font-sans text-xs text-muted">Copy now — shown once.</span>
           </p>
         ) : null}
-        <ul className="divide-y divide-line rounded-lg border border-line bg-panel">
+        <ul className="divide-y divide-line rounded-lg border border-line bg-panel shadow-glow">
           {keys.length === 0 ? (
             <li className="px-4 py-3 text-sm text-muted">No keys yet.</li>
           ) : (
@@ -299,7 +299,7 @@ export function ConsoleClient() {
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold tracking-tight">Recent usage</h2>
-        <ul className="divide-y divide-line rounded-lg border border-line bg-panel">
+        <ul className="divide-y divide-line rounded-lg border border-line bg-panel shadow-glow">
           {usage.length === 0 ? (
             <li className="px-4 py-3 text-sm text-muted">No calls yet.</li>
           ) : (

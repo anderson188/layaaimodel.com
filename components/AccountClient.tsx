@@ -286,12 +286,12 @@ export function AccountClient() {
           </button>
         </div>
         {newKey ? (
-          <p className="rounded-lg border border-accent/40 bg-panel px-4 py-3 font-mono text-sm text-ink">
+          <p className="rounded-lg border border-accent/40 bg-panel px-4 py-3 font-mono text-sm text-ink shadow-glow">
             {newKey}
             <span className="mt-1 block font-sans text-xs text-muted">Copy now — shown once.</span>
           </p>
         ) : null}
-        <ul className="divide-y divide-line rounded-lg border border-line bg-panel">
+        <ul className="divide-y divide-line rounded-lg border border-line bg-panel shadow-glow">
           {keys.length === 0 ? (
             <li className="px-4 py-3 text-sm text-muted">No keys yet.</li>
           ) : (
@@ -347,7 +347,7 @@ export function AccountClient() {
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold tracking-tight">Alerts</h2>
-        <ul className="divide-y divide-line rounded-lg border border-line bg-panel">
+        <ul className="divide-y divide-line rounded-lg border border-line bg-panel shadow-glow">
           {alerts.length === 0 ? (
             <li className="px-4 py-3 text-sm text-muted">No alerts.</li>
           ) : (
@@ -365,7 +365,7 @@ export function AccountClient() {
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold tracking-tight">Usage monitor</h2>
-        <ul className="divide-y divide-line rounded-lg border border-line bg-panel">
+        <ul className="divide-y divide-line rounded-lg border border-line bg-panel shadow-glow">
           {usage.length === 0 ? (
             <li className="px-4 py-3 text-sm text-muted">
               No calls yet. Try a{" "}
@@ -410,7 +410,7 @@ export function AccountClient() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-line bg-panel px-4 py-3">
+    <div className="rounded-lg border border-line bg-panel px-4 py-3 shadow-glow">
       <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
       <p className="mt-1 text-lg font-semibold text-ink">{value.toLocaleString()}</p>
     </div>

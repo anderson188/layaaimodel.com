@@ -109,7 +109,7 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(videoJsonLd) }} />
 
       <section>
-        <figure className="rounded-2xl border border-line bg-panel px-6 py-10 sm:px-12 sm:py-14">
+        <figure className="rounded-2xl border border-line bg-panel px-6 py-10 shadow-glow sm:px-12 sm:py-14">
           <img
             src="/official/logo-lockup-dark.svg"
             alt="Official Laya logo: a blue spiral mark, the word laya, and the line decisions, not text."
@@ -157,7 +157,7 @@ export default function Home() {
 
       <section className="space-y-6">
         <h2 className="text-xl font-semibold tracking-tight">Laya vs Jev</h2>
-        <figure className="overflow-hidden rounded-lg border border-line">
+        <figure className="overflow-hidden rounded-lg border border-line shadow-glow">
           <img
             src="/official/laya_vs_jev.png"
             alt="Official chart comparing Laya with routing against TypeSafe Jev on accuracy, language coverage, speed, calibration, license, and cost."
@@ -176,7 +176,7 @@ export default function Home() {
         <p className="max-w-3xl text-sm leading-relaxed text-muted">
           Two sources sit in separate tables on purpose. The first is the project&apos;s own README. The second is a Hugging Face community dataset that remeasured Laya. Jev cells in both places are published quotes unless a caption says otherwise. The write-up of why the figures disagree is the <Link href="/benchmarks/" className="text-accent hover:underline">Laya vs Jev benchmark explained</Link> page.
         </p>
-        <div className="rounded-lg border border-line bg-panel p-5 text-sm leading-relaxed text-muted">
+        <div className="rounded-lg border border-line bg-panel p-5 text-sm leading-relaxed text-muted shadow-glow">
           On the official typed-decisions run, the base checkpoints score 0.362 and 0.342, under the 0.461 majority-class baseline. The 0.766 figure belongs to <code className="font-mono text-ink">laya-typed-decisions</code>, fine-tuned on that benchmark&apos;s training split. Installing the package does not give you that score.
         </div>
         <h3 className="text-lg font-medium text-ink">Official self-test</h3>
@@ -193,7 +193,7 @@ export default function Home() {
         <h2 className="text-xl font-semibold tracking-tight">Features</h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {features.map((feature) => (
-            <article key={feature.title} className="rounded-lg border border-line bg-panel p-5">
+            <article key={feature.title} className="rounded-lg border border-line bg-panel p-5 shadow-glow">
               <h3 className="font-medium text-ink">{feature.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted">{feature.body}</p>
             </article>
@@ -216,7 +216,7 @@ export default function Home() {
         <h2 className="text-xl font-semibold tracking-tight">Use cases</h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {useCases.map((item) => (
-            <Link key={item.href} href={item.href} className="rounded-lg border border-line bg-panel p-5 hover:border-accent">
+            <Link key={item.href} href={item.href} className="rounded-lg border border-line bg-panel p-5 shadow-glow hover:border-accent">
               <h3 className="font-medium text-ink">{item.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted">{item.body}</p>
             </Link>

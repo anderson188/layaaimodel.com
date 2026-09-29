@@ -190,7 +190,7 @@ export function AdminClient() {
 
   if (!token) {
     return (
-      <div className="space-y-4 rounded-lg border border-line bg-panel p-5">
+      <div className="space-y-4 rounded-lg border border-line bg-panel p-5 shadow-glow">
         <p className="text-sm text-muted">
           Sign in with an admin account (listed in <code className="font-mono text-ink">ADMIN_EMAILS</code>
           ), or paste the gateway <code className="font-mono text-ink">ADMIN_TOKEN</code>.
@@ -233,7 +233,7 @@ export function AdminClient() {
   if (error && !data) {
     const isSession = token.startsWith("sess_");
     return (
-      <div className="space-y-3 rounded-lg border border-line bg-panel p-5">
+      <div className="space-y-3 rounded-lg border border-line bg-panel p-5 shadow-glow">
         <p className="text-sm text-accent">{error}</p>
         <p className="text-sm text-muted">
           {isSession
@@ -271,7 +271,7 @@ export function AdminClient() {
       {error ? <p className="text-sm text-accent">{error}</p> : null}
       {okMsg ? <p className="text-sm text-ink">{okMsg}</p> : null}
 
-      <section className="rounded-lg border border-line bg-panel p-5">
+      <section className="rounded-lg border border-line bg-panel p-5 shadow-glow">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold">System</h2>
@@ -343,7 +343,7 @@ export function AdminClient() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-line bg-panel p-5">
+      <section className="rounded-lg border border-line bg-panel p-5 shadow-glow">
         <h2 className="text-lg font-semibold">Quick grant</h2>
         <p className="mt-1 text-sm text-muted">Add prepaid tokens by email (same meter as Stripe packs).</p>
         <form
@@ -489,7 +489,7 @@ export function AdminClient() {
         </form>
         <ul className="mt-3 space-y-3">
           {data.users.map((u) => (
-            <li key={u.id} className="rounded-lg border border-line bg-panel p-3 text-sm">
+            <li key={u.id} className="rounded-lg border border-line bg-panel p-3 text-sm shadow-glow">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="font-medium">
@@ -546,7 +546,7 @@ export function AdminClient() {
             </li>
           ))}
           {data.users.length === 0 ? (
-            <li className="rounded-lg border border-line bg-panel p-3 text-sm text-muted">No users.</li>
+            <li className="rounded-lg border border-line bg-panel p-3 text-sm text-muted shadow-glow">No users.</li>
           ) : null}
         </ul>
         {data.usersMeta.totalPages > 1 ? (

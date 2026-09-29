@@ -67,15 +67,15 @@ export function StatusClient() {
     <div className="space-y-6">
       <p className={`text-2xl font-semibold tracking-tight ${badge}`}>{data.status}</p>
       <dl className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-lg border border-line bg-panel px-4 py-3">
+        <div className="rounded-lg border border-line bg-panel px-4 py-3 shadow-glow">
           <dt className="text-xs uppercase tracking-wide text-muted">Upstream mode</dt>
           <dd className="mt-1 font-mono text-sm text-ink">{data.upstream_mode}</dd>
         </div>
-        <div className="rounded-lg border border-line bg-panel px-4 py-3">
+        <div className="rounded-lg border border-line bg-panel px-4 py-3 shadow-glow">
           <dt className="text-xs uppercase tracking-wide text-muted">Checked at</dt>
           <dd className="mt-1 font-mono text-sm text-ink">{data.checked_at}</dd>
         </div>
-        <div className="rounded-lg border border-line bg-panel px-4 py-3">
+        <div className="rounded-lg border border-line bg-panel px-4 py-3 shadow-glow">
           <dt className="text-xs uppercase tracking-wide text-muted">Impossibl Laya free?</dt>
           <dd className="mt-1 font-mono text-sm text-ink">
             {data.impossibl_catalog.ok
@@ -83,7 +83,7 @@ export function StatusClient() {
               : `catalog unreachable (${data.impossibl_catalog.status})`}
           </dd>
         </div>
-        <div className="rounded-lg border border-line bg-panel px-4 py-3">
+        <div className="rounded-lg border border-line bg-panel px-4 py-3 shadow-glow">
           <dt className="text-xs uppercase tracking-wide text-muted">Last 24h</dt>
           <dd className="mt-1 text-sm text-ink">
             {data.last_24h.total} calls · {data.last_24h.upstream5xx} upstream 5xx ·{" "}
