@@ -68,6 +68,44 @@ export async function syncUserAdminFlag(env: Env, user: UserRow): Promise<UserRo
   return { ...user, is_admin: want };
 }
 
+export async function findUserByEmail(env: Env, email: string): Promise<UserRow | null> {
+  return (
+    (await env.DB.prepare("SELECT * FROM users WHERE email = ?")
+      .bind(email.toLowerCase())
+      .first<UserRow>()) ?? null
+  );
+}
+
+/** Find by email or create with the given password (caller may pass a one-time random password). */
+export async function findOrCreateUserByEmail(
+  env: Env,
+  email: string,
+  password: string,
+): Promise<{ user: UserRow; created: boolean; sessionToken?: string }> {
+  const existing = await findUserByEmail(env, email);
+  if (existing) return { user: existing, created: false };
+  try {
+    const { user, sessionToken } = await createUser(env, email, password);
+    return { user, created: true, sessionToken };
+  } catch (err) {
+    const msg = String(err).toLowerCase();
+    if (msg.includes("unique") || msg.includes("constraint")) {
+      const again = await findUserByEmail(env, email);
+      if (again) return { user: again, created: false };
+    }
+    throw err;
+  }
+}
+
+export async function ledgerHasRef(env: Env, reason: string, ref: string): Promise<boolean> {
+  const row = await env.DB.prepare(
+    "SELECT id FROM credit_ledger WHERE reason = ? AND ref = ? LIMIT 1",
+  )
+    .bind(reason, ref)
+    .first();
+  return !!row;
+}
+
 export async function createUser(
   env: Env,
   email: string,

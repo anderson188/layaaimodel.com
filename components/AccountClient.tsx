@@ -49,18 +49,65 @@ export function AccountClient() {
   const [alertEnabled, setAlertEnabled] = useState(true);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(SESSION_KEY);
-    if (saved) setToken(saved);
     const params = new URLSearchParams(window.location.search);
     const checkout = params.get("checkout");
+    const sessionId = params.get("session_id");
+    const saved = window.localStorage.getItem(SESSION_KEY);
+
     if (checkout === "cancel") {
       setMessage("Checkout canceled — no charge was made.");
     }
-    if (!saved) {
+
+    if (checkout === "success" && sessionId) {
+      let cancelled = false;
+      setMessage("Payment received — issuing your key…");
+      void (async () => {
+        const claim = await apiFetch<{
+          email: string;
+          credits: number;
+          session_token: string;
+          api_key: string | null;
+          login_password: string | null;
+          new_account: boolean;
+        }>("/v1/billing/claim", {
+          method: "POST",
+          body: { session_id: sessionId },
+        });
+        if (cancelled) return;
+        if (!claim.ok) {
+          setMessage(claim.message);
+          if (!saved) openAuthModal("login");
+          return;
+        }
+        window.localStorage.setItem(SESSION_KEY, claim.data.session_token);
+        window.dispatchEvent(new Event("laya-auth-changed"));
+        setToken(claim.data.session_token);
+        if (claim.data.api_key) setNewKey(claim.data.api_key);
+        const bits = [
+          `Payment confirmed — balance ${claim.data.credits.toLocaleString()} input tokens.`,
+          claim.data.api_key ? "Copy your new laya_ key below (shown once)." : "Key for this checkout was already issued — create another below if needed.",
+        ];
+        if (claim.data.login_password) {
+          bits.push(
+            `New account ${claim.data.email}. Temporary password (save it): ${claim.data.login_password}`,
+          );
+        }
+        setMessage(bits.join(" "));
+        window.history.replaceState(null, "", "/account/");
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (saved) setToken(saved);
+
+    if (!saved && checkout !== "success") {
       const m = params.get("mode") === "register" ? "register" : "login";
       openAuthModal(m);
     }
-    if (checkout === "success" && saved) {
+
+    if (checkout === "success" && saved && !sessionId) {
       setMessage("Payment received — confirming credit top-up…");
       let tries = 0;
       const timer = window.setInterval(async () => {

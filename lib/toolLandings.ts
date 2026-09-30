@@ -8,6 +8,7 @@ export const TOOL_LANDING_SLUGS = [
   "email-triage",
   "content-moderate",
   "scam-spot",
+  "agent-risk",
 ] as const;
 
 export type ToolLandingSlug = (typeof TOOL_LANDING_SLUGS)[number];
@@ -28,21 +29,21 @@ export type ToolLandingCopy = {
 export const TOOL_LANDINGS: Record<ToolLandingSlug, ToolLandingCopy> = {
   "prompt-guard": {
     slug: "prompt-guard",
-    h1: "Prompt injection guard for agent pipelines",
-    title: "Prompt Injection Guard API",
+    h1: "Jailbreak detection API for LLM and agent inputs",
+    title: "Jailbreak Detection API",
     description:
-      "Score untrusted chat or tool input for prompt injection risk. Laya returns allow / quarantine / block plus calibrated yes/no and risk score — not free text.",
-    intent: "prompt injection detection API",
+      "Jailbreak detection API: score chat or tool input for DAN-style bypass and instruction override. Returns allow / quarantine / block plus risk — not free text.",
+    intent: "jailbreak detection API",
     whenToUse:
-      "Use this when user text, emails, or retrieved documents reach an agent that can call tools. You need a fast gate before the LLM sees the payload — not another chat reply.",
+      "Use this when user text, emails, or retrieved documents may try to jailbreak the model or override system instructions before they reach an agent with tools.",
     howItWorks:
-      "POST a text blob and optional context. Laya answers typed questions: choice action (allow, quarantine, block), noul injection flag, and an ordinal risk score. Prepaid metering charges input tokens only.",
+      "POST a text blob and optional context. Laya answers typed questions: choice action (allow, quarantine, block), noul injection/jailbreak flag, and an ordinal risk score. Prepaid metering charges input tokens only.",
     exampleNarrative:
-      "A classic jailbreak (“Ignore previous instructions…”) should land on quarantine or block with a high injection probability. Clean support questions should stay on allow with low risk.",
+      "A classic jailbreak (“Ignore previous instructions…”, “DAN mode…”) should land on quarantine or block with a high risk score. Clean support questions should stay on allow with low risk.",
     body: [
-      "Most agent stacks still treat the first LLM call as the security boundary. That fails when the attacker’s payload is the user message itself: “ignore previous instructions,” “exfiltrate the system prompt,” or a RAG chunk that smuggles tool-calling instructions. A generative classifier that answers in paragraphs is slow and hard to wire into allow/deny logic. A System One decision model returns typed fields you can branch on in one hop.",
-      "Wire the guard on every untrusted ingress: chat widgets, email-to-agent bridges, browser tool outputs, and retrieved documents before they enter the prompt. Keep the generative model behind the gate. If action is quarantine or block, drop or sandbox the turn; if allow, pass the original text through unchanged. The same laya_ key meters this template and /v1/decide, so you do not run a second billing stack.",
-      "This page is for teams searching for a prompt injection detection API — not for people who already know the Laya brand. Pair it with agent-risk checks when the model can call tools that spend money or change state.",
+      "Developers searching for a jailbreak detection API usually need a gate in front of chat or agents — not another LLM essay. Prompt injection (OWASP LLM01) hijacks app logic; jailbreaks push the model past its refusal policy. In tool-calling stacks those attacks often travel together. This template returns allow / quarantine / block fields you can branch on in one System One pass.",
+      "Wire it on every untrusted ingress: chat widgets, email-to-agent bridges, browser tool outputs, and retrieved documents before they enter the prompt. Keep the generative model behind the gate. If action is quarantine or block, drop or sandbox the turn; if allow, pass the original text through unchanged. The same laya_ key meters this template and /v1/decide.",
+      "Primary intent: jailbreak detection API. Secondary: prompt injection guard for agent pipelines. Pair with Agent Risk Check when the model can call tools that spend money or change production state.",
     ],
   },
   "support-triage": {
@@ -119,6 +120,25 @@ export const TOOL_LANDINGS: Record<ToolLandingSlug, ToolLandingCopy> = {
       "Phishing copy is short, urgent, and full of shortened links. Signature-based filters lag; asking a chat model “is this a scam?” every time adds latency and ambiguous prose. A phishing detection API that returns a label plus risk score slots into mail gateways, SMS webhooks, and agent tools that might open URLs.",
       "Score the message before link unfurling or auto-click. High-risk phishing/scam labels should quarantine the message and strip actionable links. Suspicious mid scores can warn the user. Legitimate lows pass through. Channel metadata (email vs sms vs chat) helps the template interpret urgency tropes.",
       "Built for trust-and-safety and mailbox teams hunting scam spotter or phishing detector APIs. Laya vs Jev benchmark pages cover broader accuracy claims; this page stays on the scam-spotting job.",
+    ],
+  },
+  "agent-risk": {
+    slug: "agent-risk",
+    h1: "Agent tool-call risk check API",
+    title: "Agent Risk Check API",
+    description:
+      "Gate a proposed agent tool call: allow / confirm / block with risk score and destructive flag. Hosted Laya System One template for agent safety.",
+    intent: "agent tool call risk API",
+    whenToUse:
+      "Before an agent runs bash, cloud CLIs, or payment tools — you need a structured risk gate on the proposed call, not a chat rationale after the damage.",
+    howItWorks:
+      "POST goal, tool name, arguments, and context. Returns choice action (allow, confirm, block), ordinal risk, and a noul destructive flag in one decide pass. Same prepaid laya_ balance as other templates.",
+    exampleNarrative:
+      "rm -rf plus aws s3 sync --delete against prod should prefer confirm or block with high/critical risk and destructive=yes. A read-only ls in a workspace should allow with low risk.",
+    body: [
+      "Agent frameworks that auto-execute tool calls need a policy checkpoint. Keyword denylists miss novel argument shapes; asking a large chat model “is this safe?” adds latency and free-text parsing. An agent tool call risk API that returns allow / confirm / block plus risk score plugs into LangGraph, custom workers, or your own planner loop.",
+      "Call it after the model proposes a tool invocation and before the runtime executes. confirm can mean human-in-the-loop; block drops the turn; allow proceeds. Log the JSON fields for audit. Keep option sets small — this is a System One gate, not a full policy engine.",
+      "Search intent sits on agent risk, tool-call approval, and agent safety APIs — smaller volume than jailbreak detection but high willingness to pay when agents touch production.",
     ],
   },
 };
