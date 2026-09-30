@@ -1,0 +1,128 @@
+name: Fix apex DNS and www redirect
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure apex CNAME + 301 to www
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: 6b9d7aa4c8c5121d0650a4bea977bf9b
+          CF_ZONE: 73a3f9ef9b9347963cb03ccc65bf84aa
+        run: |
+          set -euo pipefail
+          AUTH="Authorization: Bearer ${CF_TOKEN}"
+
+          echo "== DNS list (apex/www) =="
+          curl -sS -H "$AUTH" \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/dns_records?per_page=100" \
+            | tee /tmp/dns.json | head -c 2000
+          echo
+
+          APEX_ID=$(python3 - <<'PY'
+          import json
+          data=json.load(open("/tmp/dns.json"))
+          for r in data.get("result") or []:
+            if r.get("name")=="layaaimodel.com" and r.get("type") in ("CNAME","A","AAAA"):
+              print(r["id"]); break
+          PY
+          )
+
+          if [ -n "${APEX_ID}" ]; then
+            echo "Updating existing apex record ${APEX_ID}"
+            curl -sS -X PUT -H "$AUTH" -H "Content-Type: application/json" \
+              "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/dns_records/${APEX_ID}" \
+              --data '{"type":"CNAME","name":"@","content":"layaaimodel.pages.dev","proxied":true,"ttl":1}'
+          else
+            echo "Creating apex CNAME"
+            curl -sS -X POST -H "$AUTH" -H "Content-Type: application/json" \
+              "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/dns_records" \
+              --data '{"type":"CNAME","name":"@","content":"layaaimodel.pages.dev","proxied":true,"ttl":1}'
+          fi
+          echo
+
+          echo "== Ensure Pages apex domain =="
+          curl -sS -H "$AUTH" \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/pages/projects/layaaimodel/domains" \
+            | tee /tmp/domains.json
+          echo
+          HAS_APEX=$(python3 - <<'PY'
+          import json
+          data=json.load(open("/tmp/domains.json"))
+          print("1" if any(d.get("name")=="layaaimodel.com" for d in (data.get("result") or [])) else "0")
+          PY
+          )
+          if [ "$HAS_APEX" = "0" ]; then
+            curl -sS -X POST -H "$AUTH" -H "Content-Type: application/json" \
+              "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/pages/projects/layaaimodel/domains" \
+              --data '{"name":"layaaimodel.com"}'
+            echo
+          fi
+
+          echo "== Bulk Redirect list (apex -> www) =="
+          # Create or reuse list
+          curl -sS -H "$AUTH" \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/rules/lists?kind=redirect" \
+            | tee /tmp/lists.json
+          echo
+          LIST_ID=$(python3 - <<'PY'
+          import json
+          data=json.load(open("/tmp/lists.json"))
+          for item in data.get("result") or []:
+            if item.get("name")=="laya-apex-to-www":
+              print(item["id"]); break
+          PY
+          )
+          if [ -z "$LIST_ID" ]; then
+            LIST_ID=$(curl -sS -X POST -H "$AUTH" -H "Content-Type: application/json" \
+              "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/rules/lists" \
+              --data '{"name":"laya-apex-to-www","description":"301 apex to www","kind":"redirect"}' \
+              | python3 -c 'import sys,json; print(json.load(sys.stdin)["result"]["id"])')
+          fi
+          echo "LIST_ID=$LIST_ID"
+
+          curl -sS -X PUT -H "$AUTH" -H "Content-Type: application/json" \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/rules/lists/${LIST_ID}/items" \
+            --data '[{"redirect":{"source_url":"https://layaaimodel.com/","target_url":"https://www.layaaimodel.com/","status_code":301,"include_subpaths":true,"preserve_query_string":true,"subpath_matching":true}}]'
+          echo
+
+          echo "== Ensure bulk redirect rule in entrypoint ruleset =="
+          # Get zone http_request_redirect entrypoint
+          curl -sS -H "$AUTH" \
+            "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/rulesets/phases/http_request_redirect/entrypoint" \
+            | tee /tmp/ruleset.json
+          echo
+          RULESET_ID=$(python3 - <<'PY'
+          import json
+          data=json.load(open("/tmp/ruleset.json"))
+          print((data.get("result") or {}).get("id",""))
+          PY
+          )
+          if [ -z "$RULESET_ID" ]; then
+            RULESET_ID=$(curl -sS -X PUT -H "$AUTH" -H "Content-Type: application/json" \
+              "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/rulesets/phases/http_request_redirect/entrypoint" \
+              --data "{\"rules\":[{\"ref\":\"laya_apex_www\",\"description\":\"Apex to www\",\"expression\":\"http.host eq \\\"layaaimodel.com\\\"\",\"action\":\"redirect\",\"action_parameters\":{\"from_list\":{\"name\":\"laya-apex-to-www\",\"key\":\"http.request.full_uri\"}}}]}" \
+              | python3 -c 'import sys,json; print(json.load(sys.stdin).get("result",{}).get("id",""))')
+          else
+            # Patch: ensure our rule exists
+            python3 - <<PY
+          import json
+          data=json.load(open("/tmp/ruleset.json"))
+          rules=data.get("result",{}).get("rules") or []
+          exists=any("layaaimodel.com" in (r.get("expression") or "") for r in rules)
+          open("/tmp/has_rule","w").write("1" if exists else "0")
+          PY
+            if [ "$(cat /tmp/has_rule)" = "0" ]; then
+              curl -sS -X POST -H "$AUTH" -H "Content-Type: application/json" \
+                "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/rulesets/${RULESET_ID}/rules" \
+                --data '{"description":"Apex to www","expression":"http.host eq \"layaaimodel.com\"","action":"redirect","action_parameters":{"from_list":{"name":"laya-apex-to-www","key":"http.request.full_uri"}}}'
+              echo
+            else
+              echo "Redirect rule already present"
+            fi
+          fi
+
+          echo "DONE"
