@@ -1,17 +1,9 @@
 import type { Env } from "./env";
-import {
-  addCredits,
-  createApiKey,
-  createSession,
-  findOrCreateUserByEmail,
-  findUserByEmail,
-  ledgerHasRef,
-  setUserPack,
-} from "./db";
+import { addCredits, ledgerHasRef, setUserPack } from "./db";
 import { notifyAdmins, rechargeNotifyText } from "./notify";
 import { packById } from "./packs";
 import priceMap from "../stripe-prices.json";
-import { nowIso, randomToken } from "./util";
+import { nowIso } from "./util";
 
 function priceIdForPack(packId: string): string | null {
   const entry = (priceMap as { prices: Record<string, { price_id: string }> }).prices?.[packId];
@@ -20,40 +12,27 @@ function priceIdForPack(packId: string): string | null {
 
 export async function createCheckoutSession(
   env: Env,
-  opts: {
-    packId: string;
-    userId?: string | null;
-    email?: string | null;
-  },
+  userId: string,
+  email: string,
+  packId: string,
 ): Promise<{ url: string } | { error: string; status: number }> {
   if (!env.STRIPE_SECRET_KEY) {
     return { error: "Stripe is not configured on this gateway", status: 503 };
   }
-  const pack = packById(opts.packId);
+  const pack = packById(packId);
   if (!pack) return { error: "Unknown pack id", status: 400 };
 
   const priceId = priceIdForPack(pack.id);
   const params = new URLSearchParams();
   params.set("mode", "payment");
-  params.set(
-    "success_url",
-    `${env.SITE_URL}/account/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-  );
+  params.set("success_url", `${env.SITE_URL}/account/?checkout=success`);
   params.set("cancel_url", `${env.SITE_URL}/pricing/?checkout=cancel`);
+  params.set("customer_email", email);
+  params.set("client_reference_id", userId);
+  params.set("metadata[user_id]", userId);
   params.set("metadata[credits]", String(pack.tokens));
   params.set("metadata[pack_id]", pack.id);
   params.set("line_items[0][quantity]", "1");
-
-  if (opts.userId) {
-    params.set("client_reference_id", opts.userId);
-    params.set("metadata[user_id]", opts.userId);
-  } else {
-    params.set("metadata[guest]", "1");
-  }
-
-  if (opts.email) {
-    params.set("customer_email", opts.email);
-  }
 
   if (priceId) {
     params.set("line_items[0][price]", priceId);
@@ -131,7 +110,6 @@ type StripeCheckoutSession = {
   client_reference_id?: string | null;
   metadata?: Record<string, string>;
   payment_status?: string;
-  status?: string;
   customer_email?: string | null;
   customer_details?: { email?: string | null } | null;
   success_url?: string | null;
@@ -144,30 +122,12 @@ type StripeEvent = {
   data: { object: StripeCheckoutSession };
 };
 
-async function fetchStripeSession(
-  env: Env,
-  sessionId: string,
-): Promise<StripeCheckoutSession | null> {
-  if (!env.STRIPE_SECRET_KEY) return null;
-  const res = await fetch(`https://api.stripe.com/v1/checkout/sessions/${sessionId}`, {
-    headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
-  });
-  if (!res.ok) return null;
-  return (await res.json()) as StripeCheckoutSession;
-}
-
-function sessionEmail(session: StripeCheckoutSession): string | null {
-  const raw = session.customer_details?.email || session.customer_email || null;
-  if (!raw || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) return null;
-  return raw.toLowerCase();
-}
-
-/** Credit the buyer for a paid Checkout session (idempotent on session id). */
+/** Credit a registered user for a paid Checkout session (idempotent on session id). */
 export async function applyPaidCheckout(
   env: Env,
   session: StripeCheckoutSession,
   ctx?: ExecutionContext,
-): Promise<{ userId: string; email: string; credits: number; packId: string | null } | { error: string }> {
+): Promise<{ userId: string; email: string; credits: number; packId: string } | { error: string }> {
   if (!session.id) return { error: "Missing session id" };
   if (session.payment_status === "unpaid") return { error: "Payment not completed" };
 
@@ -188,41 +148,33 @@ export async function applyPaidCheckout(
     return { error: "Ignored non-Laya checkout session" };
   }
 
-  const packId = layaPack.id;
+  const userId = session.client_reference_id || session.metadata?.user_id || null;
+  if (!userId) {
+    return { error: "Checkout missing user_id — register before paying" };
+  }
+
   const credits = Number.parseInt(
     session.metadata?.credits || String(layaPack.tokens || env.STRIPE_PRICE_CREDITS || "11900000"),
     10,
   );
   if (!(credits > 0)) return { error: "Invalid credit amount" };
 
-  let userId = session.client_reference_id || session.metadata?.user_id || null;
-  let email = sessionEmail(session);
-
-  if (!userId) {
-    if (!email) return { error: "Checkout email missing" };
-    const password = `tmp_${randomToken(12)}`;
-    const { user } = await findOrCreateUserByEmail(env, email, password);
-    userId = user.id;
-    email = user.email;
-  } else if (!email) {
-    const row = await env.DB.prepare("SELECT email FROM users WHERE id = ?")
-      .bind(userId)
-      .first<{ email: string }>();
-    email = row?.email ?? null;
-    if (!email) return { error: "User not found for checkout" };
-  }
+  const user = await env.DB.prepare("SELECT email FROM users WHERE id = ?")
+    .bind(userId)
+    .first<{ email: string }>();
+  if (!user) return { error: "User not found for checkout" };
 
   if (!(await ledgerHasRef(env, "stripe_checkout", session.id))) {
     await addCredits(env, userId, credits, "stripe_checkout", session.id);
-    await setUserPack(env, userId, packId);
+    await setUserPack(env, userId, layaPack.id);
 
     const notify = notifyAdmins(
       env,
-      `Recharge: ${email} +${credits.toLocaleString()}`,
+      `Recharge: ${user.email} +${credits.toLocaleString()}`,
       rechargeNotifyText({
-        email,
+        email: user.email,
         userId,
-        packId,
+        packId: layaPack.id,
         credits,
         sessionId: session.id,
       }),
@@ -231,90 +183,7 @@ export async function applyPaidCheckout(
     else void notify;
   }
 
-  return { userId, email, credits, packId };
-}
-
-/**
- * After Stripe redirects back: ensure credits, sign the buyer in, mint a key once.
- * Guest buyers get a one-time login_password when the account was just created.
- */
-export async function claimCheckoutSession(
-  env: Env,
-  sessionId: string,
-): Promise<
-  | {
-      email: string;
-      credits: number;
-      session_token: string;
-      api_key: string | null;
-      login_password: string | null;
-      new_account: boolean;
-    }
-  | { error: string; status: number }
-> {
-  if (!sessionId.startsWith("cs_")) {
-    return { error: "Invalid session id", status: 400 };
-  }
-  const session = await fetchStripeSession(env, sessionId);
-  if (!session?.id) return { error: "Checkout session not found", status: 404 };
-  if (session.payment_status !== "paid" && session.status !== "complete") {
-    return { error: "Payment not completed yet", status: 402 };
-  }
-
-  const emailHint = sessionEmail(session);
-  const existingBefore =
-    emailHint && !(session.client_reference_id || session.metadata?.user_id)
-      ? await findUserByEmail(env, emailHint)
-      : null;
-
-  let loginPassword: string | null = null;
-  let userId = session.client_reference_id || session.metadata?.user_id || null;
-
-  if (!userId) {
-    if (!emailHint) return { error: "Checkout email missing", status: 400 };
-    if (!existingBefore) {
-      loginPassword = `tmp_${randomToken(12)}`;
-      const { user } = await findOrCreateUserByEmail(env, emailHint, loginPassword);
-      userId = user.id;
-    } else {
-      userId = existingBefore.id;
-    }
-  }
-
-  const applied = await applyPaidCheckout(env, {
-    ...session,
-    client_reference_id: userId,
-    metadata: { ...(session.metadata ?? {}), user_id: userId },
-  });
-  if ("error" in applied) return { error: applied.error, status: 400 };
-
-  const sessionToken = await createSession(env, applied.userId);
-
-  const keyName = `checkout-${session.id.slice(-10)}`;
-  const existingKey = await env.DB.prepare(
-    "SELECT id FROM api_keys WHERE user_id = ? AND name = ? AND status = 'active' LIMIT 1",
-  )
-    .bind(applied.userId, keyName)
-    .first();
-
-  let apiKey: string | null = null;
-  if (!existingKey) {
-    const { plaintext } = await createApiKey(env, applied.userId, keyName);
-    apiKey = plaintext;
-  }
-
-  const refreshed = await env.DB.prepare("SELECT credits FROM users WHERE id = ?")
-    .bind(applied.userId)
-    .first<{ credits: number }>();
-
-  return {
-    email: applied.email,
-    credits: refreshed?.credits ?? applied.credits,
-    session_token: sessionToken,
-    api_key: apiKey,
-    login_password: loginPassword,
-    new_account: !!loginPassword,
-  };
+  return { userId, email: user.email, credits, packId: layaPack.id };
 }
 
 export async function handleStripeWebhook(
@@ -338,8 +207,6 @@ export async function handleStripeWebhook(
   if (event.type === "checkout.session.completed") {
     const applied = await applyPaidCheckout(env, event.data.object, ctx);
     if ("error" in applied && applied.error !== "Ignored non-Laya checkout session") {
-      // Still ack Stripe so it does not retry forever on permanent rejects;
-      // log-worthy foreign sessions are intentionally ignored above.
       console.warn("checkout apply:", applied.error, event.data.object.id);
     }
   }

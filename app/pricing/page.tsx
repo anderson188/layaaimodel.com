@@ -7,7 +7,7 @@ import { canonical } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Hosted Laya API Pricing — ≈$0.0004 per decide",
   description:
-    "Prepaid hosted Laya System One API: instant laya_ keys, no GPU ops, ready-made tools. From $5. Typical decide ≈$0.0004. Pay first — key after checkout.",
+    "Prepaid hosted Laya System One API: instant laya_ keys, no GPU ops, ready-made tools. From $5. Typical decide ≈$0.0004. Register, then buy a pack.",
   alternates: { canonical: canonical("/pricing/") },
 };
 
@@ -16,7 +16,7 @@ export default function PricingPage() {
     <div className="space-y-10">
       <PageTitle
         section="Hosted Laya API — prepaid decide calls"
-        lede="Skip torch, T4s, and Router preload. Buy a pack, get a laya_ key, call /v1/decide and the tool templates. Typical call ≈$0.0004. No account required before checkout."
+        lede="Skip torch, T4s, and Router preload. Register, buy a pack, create a laya_ key, call /v1/decide and the tool templates. Typical call ≈$0.0004."
       />
 
       <section className="max-w-3xl space-y-3 text-sm leading-relaxed text-muted">

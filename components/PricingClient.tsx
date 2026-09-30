@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { openAuthModal } from "@/components/AuthModal";
 import { API_BASE_URL } from "@/lib/api";
 import { apiFetch, SESSION_KEY } from "@/lib/apiClient";
 import { approxDecideCalls, CREDIT_PACKS, type CreditPack } from "@/lib/pricing";
@@ -27,8 +28,13 @@ export function PricingClient() {
 
   async function buy(pack: CreditPack) {
     setMessage(null);
+    if (!token) {
+      openAuthModal("register");
+      setMessage("Create an account or sign in, then click Buy again.");
+      return;
+    }
     setBusy(pack.id);
-    const res = await apiFetch<{ url: string; guest?: boolean }>("/v1/billing/checkout", {
+    const res = await apiFetch<{ url: string }>("/v1/billing/checkout", {
       method: "POST",
       token,
       body: { pack_id: pack.id },
@@ -85,7 +91,7 @@ export function PricingClient() {
               onClick={() => buy(pack)}
               className="mt-4 rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-fg disabled:opacity-60"
             >
-              {busy === pack.id ? "Redirecting…" : `Pay $${pack.usd} → get key`}
+              {busy === pack.id ? "Redirecting…" : `Buy $${pack.usd} →`}
             </button>
           </div>
         ))}
@@ -94,13 +100,24 @@ export function PricingClient() {
       <section className="space-y-3 text-sm leading-relaxed text-muted">
         <h2 className="text-xl font-semibold tracking-tight text-ink">Checkout</h2>
         <p>
-          Stripe collects email and payment. After pay, you land on Account with a{" "}
-          <code className="font-mono text-ink">laya_</code> key and balance — no sign-in step first
-          {token ? " (you are already signed in; credits go to this account)" : ""}. Anonymous visitors still get 5
-          free tool runs; registered accounts also get ~10k free input tokens/month.
+          Register or sign in first, then buy a pack. Credits land on your Account balance; create a{" "}
+          <code className="font-mono text-ink">laya_</code> key there. Anonymous visitors still get 5 free tool
+          runs; registered accounts also get ~10k free input tokens/month.
         </p>
+        {!token ? (
+          <p>
+            <button type="button" className="text-accent hover:underline" onClick={() => openAuthModal("register")}>
+              Create an account
+            </button>{" "}
+            or{" "}
+            <button type="button" className="text-accent hover:underline" onClick={() => openAuthModal("login")}>
+              sign in
+            </button>{" "}
+            before checkout.
+          </p>
+        ) : null}
         <p>
-          API base: <code className="font-mono text-ink">{API_BASE_URL}</code>. Manage keys anytime on{" "}
+          API base: <code className="font-mono text-ink">{API_BASE_URL}</code>. Manage keys on{" "}
           <Link className="text-accent hover:underline" href="/account/">
             Account
           </Link>

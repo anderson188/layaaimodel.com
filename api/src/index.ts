@@ -25,7 +25,7 @@ import {
 import { runDecide, runGate } from "./decide";
 import type { Env } from "./env";
 import { ANON_FREE_TOOL_RUNS, CREDIT_PACKS, MONTHLY_FREE_TOKENS } from "./packs";
-import { createCheckoutSession, claimCheckoutSession, handleStripeWebhook } from "./stripe";
+import { createCheckoutSession, handleStripeWebhook } from "./stripe";
 import { notifyAdmins, registrationNotifyText } from "./notify";
 import { findToolHandler } from "./toolHandlers";
 import {
@@ -330,23 +330,12 @@ async function handleBillingLedger(env: Env, req: Request): Promise<Response> {
 
 async function handleCheckout(env: Env, req: Request): Promise<Response> {
   const user = await requireUser(env, req);
+  if (!user) return error("Unauthorized", 401, "authentication_error");
   const body = (await req.json().catch(() => null)) as { pack_id?: string } | null;
   const packId = body?.pack_id || "starter_5";
-  const result = await createCheckoutSession(env, {
-    packId,
-    userId: user?.id ?? null,
-    email: user?.email ?? null,
-  });
+  const result = await createCheckoutSession(env, user.id, user.email, packId);
   if ("error" in result) return error(result.error, result.status);
-  return json({ url: result.url, pack_id: packId, guest: !user });
-}
-
-async function handleCheckoutClaim(env: Env, req: Request): Promise<Response> {
-  const body = (await req.json().catch(() => null)) as { session_id?: string } | null;
-  if (!body?.session_id) return error("`session_id` is required", 400);
-  const result = await claimCheckoutSession(env, body.session_id.trim());
-  if ("error" in result) return error(result.error, result.status);
-  return json(result);
+  return json({ url: result.url, pack_id: packId });
 }
 
 async function handlePacks(): Promise<Response> {
@@ -456,8 +445,6 @@ export default {
         res = await handleBillingLedger(env, req);
       } else if (req.method === "POST" && path === "/v1/billing/checkout") {
         res = await handleCheckout(env, req);
-      } else if (req.method === "POST" && path === "/v1/billing/claim") {
-        res = await handleCheckoutClaim(env, req);
       } else if (req.method === "POST" && path === "/v1/billing/webhook") {
         res = await handleStripeWebhook(env, req, ctx);
       } else if (req.method === "GET" && path === "/v1/admin/overview") {
