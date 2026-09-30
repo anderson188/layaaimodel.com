@@ -1,0 +1,8 @@
+﻿name = "laya-apex-to-www"
+main = "index.js"
+compatibility_date = "2026-09-30"
+workers_dev = false
+
+[[routes]]
+pattern = "layaaimodel.com/*"
+zone_name = "layaaimodel.com"
