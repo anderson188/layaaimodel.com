@@ -134,6 +134,8 @@ type StripeCheckoutSession = {
   status?: string;
   customer_email?: string | null;
   customer_details?: { email?: string | null } | null;
+  success_url?: string | null;
+  cancel_url?: string | null;
 };
 
 type StripeEvent = {
@@ -169,10 +171,26 @@ export async function applyPaidCheckout(
   if (!session.id) return { error: "Missing session id" };
   if (session.payment_status === "unpaid") return { error: "Payment not completed" };
 
-  const packId = session.metadata?.pack_id ?? null;
-  const pack = packId ? packById(packId) : undefined;
+  // Shared Stripe account with jevtypesafe.org — ignore foreign checkouts.
+  const siteHost = (() => {
+    try {
+      return new URL(env.SITE_URL).hostname;
+    } catch {
+      return "layaaimodel.com";
+    }
+  })();
+  const success = session.success_url || "";
+  const cancel = session.cancel_url || "";
+  const urlsOk = success.includes(siteHost) || cancel.includes(siteHost);
+  const packIdRaw = session.metadata?.pack_id ?? null;
+  const layaPack = packIdRaw ? packById(packIdRaw) : undefined;
+  if (!urlsOk || !layaPack) {
+    return { error: "Ignored non-Laya checkout session" };
+  }
+
+  const packId = layaPack.id;
   const credits = Number.parseInt(
-    session.metadata?.credits || String(pack?.tokens || env.STRIPE_PRICE_CREDITS || "11900000"),
+    session.metadata?.credits || String(layaPack.tokens || env.STRIPE_PRICE_CREDITS || "11900000"),
     10,
   );
   if (!(credits > 0)) return { error: "Invalid credit amount" };
@@ -196,7 +214,7 @@ export async function applyPaidCheckout(
 
   if (!(await ledgerHasRef(env, "stripe_checkout", session.id))) {
     await addCredits(env, userId, credits, "stripe_checkout", session.id);
-    if (packId) await setUserPack(env, userId, packId);
+    await setUserPack(env, userId, packId);
 
     const notify = notifyAdmins(
       env,
@@ -318,7 +336,12 @@ export async function handleStripeWebhook(
   if (existing) return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200 });
 
   if (event.type === "checkout.session.completed") {
-    await applyPaidCheckout(env, event.data.object, ctx);
+    const applied = await applyPaidCheckout(env, event.data.object, ctx);
+    if ("error" in applied && applied.error !== "Ignored non-Laya checkout session") {
+      // Still ack Stripe so it does not retry forever on permanent rejects;
+      // log-worthy foreign sessions are intentionally ignored above.
+      console.warn("checkout apply:", applied.error, event.data.object.id);
+    }
   }
 
   await env.DB.prepare("INSERT INTO stripe_events (id, processed_at) VALUES (?, ?)")
