@@ -9,6 +9,7 @@ import {
   syncUserAdminFlag,
   userFromSession,
 } from "./db";
+import { notifyAdmins } from "./notify";
 import { bearerToken, error, json } from "./util";
 
 async function requireAdmin(env: Env, req: Request): Promise<Response | null> {
@@ -319,6 +320,20 @@ export async function handleAdminAction(env: Env, req: Request): Promise<Respons
       .run();
     if ((result.meta.changes ?? 0) === 0) return error("User not found", 404);
     return json({ ok: true, user_id: body.userId, disabled });
+  }
+
+  if (body.action === "test_alert") {
+    const result = await notifyAdmins(
+      env,
+      "Alert drill (manual)",
+      [
+        "Manual admin email test from /admin",
+        "",
+        `When: ${new Date().toISOString()}`,
+        "If you received this, register / recharge / alert mail is working.",
+      ].join("\n"),
+    );
+    return json(result);
   }
 
   return error("Unknown action", 400);

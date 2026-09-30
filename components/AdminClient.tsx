@@ -340,6 +340,18 @@ export function AdminClient() {
           >
             Refresh
           </button>
+          <button
+            type="button"
+            disabled={busy}
+            className="rounded-md border border-line px-3 py-1.5 text-sm"
+            onClick={() =>
+              void post({ action: "test_alert" }).then((ok) => {
+                if (ok) setOkMsg("Test alert queued — check 2420133012@qq.com");
+              })
+            }
+          >
+            Test alert email
+          </button>
         </div>
       </section>
 

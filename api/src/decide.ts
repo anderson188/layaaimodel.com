@@ -6,11 +6,11 @@ import {
   countUserTokensSince,
   findApiKey,
   getUserRpm,
-  recordAlert,
   recordUsage,
   resolveUpstreamMode,
   touchBurnAlert,
 } from "./db";
+import { recordAlertAndNotify } from "./notify";
 import { error, parseIntEnv, uuid } from "./util";
 
 function resolveModel(raw: unknown): string | null {
@@ -61,7 +61,7 @@ export async function runDecide(
     const alertThreshold = Math.max(1, Math.floor(rpm * 0.85));
     const recent = await countRecentRequests(env, opts.auth.apiKey.id, 60_000);
     if (recent >= rpm) {
-      await recordAlert(env, opts.auth.apiKey.id, opts.auth.apiKey.user_id, "rate_limit", recent + 1);
+      await recordAlertAndNotify(env, opts.auth.apiKey.id, opts.auth.apiKey.user_id, "rate_limit", recent + 1);
       await recordUsage(env, {
         keyId,
         userId,
@@ -77,7 +77,7 @@ export async function runDecide(
       return error("Rate limit exceeded", 429, "rate_limit_error");
     }
     if (recent + 1 >= alertThreshold) {
-      await recordAlert(env, opts.auth.apiKey.id, opts.auth.apiKey.user_id, "high_rate", recent + 1);
+      await recordAlertAndNotify(env, opts.auth.apiKey.id, opts.auth.apiKey.user_id, "high_rate", recent + 1);
     }
 
     // Soft burn caps similar to jevtypesafe (scaled down defaults for free upstream host)
@@ -86,7 +86,7 @@ export async function runDecide(
     const hourUsed = await countUserTokensSince(env, opts.auth.apiKey.user_id, 60 * 60 * 1000);
     const dayUsed = await countUserTokensSince(env, opts.auth.apiKey.user_id, 24 * 60 * 60 * 1000);
     if (hourUsed >= hourCap || dayUsed >= dayCap) {
-      await recordAlert(env, opts.auth.apiKey.id, opts.auth.apiKey.user_id, "burn_cap", hourUsed);
+      await recordAlertAndNotify(env, opts.auth.apiKey.id, opts.auth.apiKey.user_id, "burn_cap", hourUsed);
       return error("Account token burn cap reached. Try again later or buy a larger pack.", 429, "rate_limit_error");
     }
   }

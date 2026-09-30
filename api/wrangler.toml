@@ -26,7 +26,11 @@ STRIPE_PRICE_CREDITS = "11900000"
 DEFAULT_SIGNUP_CREDITS = "10000"
 ADMIN_EMAILS = "luckinessdueler@gmail.com"
 ADMIN_NOTIFY_EMAILS = "2420133012@qq.com"
+EMAIL_FROM = "support@layaaimodel.com"
 RESEND_FROM = "Laya AI <support@layaaimodel.com>"
+
+[[send_email]]
+name = "EMAIL"
 
 # Secrets (set via `wrangler secret put`):
 # IMPOSSIBL_API_KEY
@@ -34,4 +38,4 @@ RESEND_FROM = "Laya AI <support@layaaimodel.com>"
 # STRIPE_SECRET_KEY
 # STRIPE_WEBHOOK_SECRET
 # SESSION_PEPPER
-# RESEND_API_KEY
+# RESEND_API_KEY (optional fallback if Cloudflare Email is unavailable)

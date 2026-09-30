@@ -20,7 +20,19 @@ export interface Env {
   RESEND_API_KEY?: string;
   /** e.g. "Laya AI <support@layaaimodel.com>" */
   RESEND_FROM?: string;
-  /** Comma-separated inbox for register/recharge alerts (defaults to ADMIN_EMAILS). */
+  /** Cloudflare Email Sending binding (same shape as jevtypesafe.org). */
+  EMAIL?: {
+    send: (msg: {
+      to: string | string[];
+      from: { email: string; name?: string } | string;
+      replyTo?: string;
+      subject: string;
+      html?: string;
+      text?: string;
+    }) => Promise<{ messageId?: string } | void>;
+  };
+  EMAIL_FROM?: string;
+  /** Comma-separated inbox for register/recharge/alerts (defaults to ADMIN_EMAILS, then QQ). */
   ADMIN_NOTIFY_EMAILS?: string;
 }
 

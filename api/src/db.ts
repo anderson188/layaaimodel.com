@@ -325,7 +325,8 @@ export async function touchBurnAlert(env: Env, userId: string, keyId: string): P
   if (purchased <= 0) return;
   const usedPct = ((purchased - user.credits) / purchased) * 100;
   if (usedPct >= user.alert_burn_pct) {
-    await recordAlert(env, keyId, userId, "balance_burn", Math.round(usedPct));
+    const { recordAlertAndNotify } = await import("./notify");
+    await recordAlertAndNotify(env, keyId, userId, "balance_burn", Math.round(usedPct));
   }
 }
 

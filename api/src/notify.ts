@@ -4,6 +4,10 @@ import { adminEmailSet } from "./db";
 const SITE_MARK = "https://www.layaaimodel.com/official/logo-mark.png";
 const SUPPORT_EMAIL = "support@layaaimodel.com";
 const ADMIN_URL = "https://www.layaaimodel.com/admin/";
+const DEFAULT_NOTIFY = "2420133012@qq.com";
+
+/** Alert email cooldown (per reason+user) to avoid inbox floods. */
+const ALERT_EMAIL_COOLDOWN_MS = 6 * 60 * 60 * 1000;
 
 function notifyRecipients(env: Env): string[] {
   const dedicated = (env.ADMIN_NOTIFY_EMAILS ?? "")
@@ -11,7 +15,9 @@ function notifyRecipients(env: Env): string[] {
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
   if (dedicated.length) return dedicated;
-  return [...adminEmailSet(env)];
+  const admins = [...adminEmailSet(env)];
+  if (admins.length) return admins;
+  return [DEFAULT_NOTIFY];
 }
 
 function brandedHtml(title: string, bodyText: string): string {
@@ -62,29 +68,45 @@ function brandedHtml(title: string, bodyText: string): string {
 </html>`;
 }
 
-/** Fire-and-forget admin email via Resend. No-op when RESEND_API_KEY is unset. */
-export async function notifyAdmins(
+type SendResult = { sent: boolean; reason?: string; via?: string };
+
+async function sendViaCloudflareEmail(
   env: Env,
+  to: string[],
   subject: string,
   text: string,
-): Promise<{ sent: boolean; reason?: string }> {
-  const recipients = notifyRecipients(env);
-  if (recipients.length === 0) {
-    console.log("[notify] skipped: no notify recipients", subject);
-    return { sent: false, reason: "no_admin_emails" };
+  html: string,
+): Promise<SendResult> {
+  const binding = env.EMAIL;
+  if (!binding?.send) return { sent: false, reason: "no_email_binding" };
+  const fromEmail =
+    (env.EMAIL_FROM || SUPPORT_EMAIL).replace(/^.*<([^>]+)>.*$/, "$1").trim() || SUPPORT_EMAIL;
+  const fromName = "Laya AI";
+  try {
+    await binding.send({
+      to,
+      from: { email: fromEmail, name: fromName },
+      replyTo: SUPPORT_EMAIL,
+      subject: `[Laya AI] ${subject}`,
+      text,
+      html,
+    });
+    return { sent: true, via: "cloudflare_email" };
+  } catch (err) {
+    console.error("[notify] Cloudflare EMAIL.send failed", err);
+    return { sent: false, reason: "cf_email_error" };
   }
-  if (!env.RESEND_API_KEY) {
-    console.log("[notify] skipped: RESEND_API_KEY unset", subject, text.slice(0, 200));
-    return { sent: false, reason: "no_resend_key" };
-  }
+}
 
-  // Prefer support@ once the domain is verified in Resend; otherwise Resend onboarding sender.
-  const from =
-    env.RESEND_FROM ||
-    `Laya AI <${SUPPORT_EMAIL}>`;
-  const html = brandedHtml(subject, text);
-  const textWithContact = `${text}\n\nContact: ${SUPPORT_EMAIL}\nAdmin: ${ADMIN_URL}`;
-
+async function sendViaResend(
+  env: Env,
+  to: string[],
+  subject: string,
+  text: string,
+  html: string,
+): Promise<SendResult> {
+  if (!env.RESEND_API_KEY) return { sent: false, reason: "no_resend_key" };
+  const from = env.RESEND_FROM || `Laya AI <${SUPPORT_EMAIL}>`;
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -94,16 +116,15 @@ export async function notifyAdmins(
       },
       body: JSON.stringify({
         from,
-        to: recipients,
+        to,
         reply_to: SUPPORT_EMAIL,
         subject: `[Laya AI] ${subject}`,
-        text: textWithContact,
+        text,
         html,
       }),
     });
     if (!res.ok) {
       const body = await res.text();
-      // Domain not verified yet — retry with Resend's shared onboarding sender.
       if (res.status === 403 || /domain|not verified|from/i.test(body)) {
         const fallback = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -113,28 +134,56 @@ export async function notifyAdmins(
           },
           body: JSON.stringify({
             from: "Laya AI Alerts <onboarding@resend.dev>",
-            to: recipients,
+            to,
             reply_to: SUPPORT_EMAIL,
             subject: `[Laya AI] ${subject}`,
-            text: textWithContact,
+            text,
             html,
           }),
         });
         if (!fallback.ok) {
-          const fb = await fallback.text();
-          console.error("[notify] Resend failed", fallback.status, fb.slice(0, 500));
+          console.error("[notify] Resend failed", fallback.status, (await fallback.text()).slice(0, 500));
           return { sent: false, reason: `resend_${fallback.status}` };
         }
-        return { sent: true };
+        return { sent: true, via: "resend_fallback" };
       }
       console.error("[notify] Resend failed", res.status, body.slice(0, 500));
       return { sent: false, reason: `resend_${res.status}` };
     }
-    return { sent: true };
+    return { sent: true, via: "resend" };
   } catch (err) {
     console.error("[notify] Resend error", err);
     return { sent: false, reason: "resend_error" };
   }
+}
+
+/** Fire-and-forget admin email. Prefer Cloudflare Email binding (same as jevtypesafe), else Resend. */
+export async function notifyAdmins(
+  env: Env,
+  subject: string,
+  text: string,
+): Promise<SendResult> {
+  const recipients = notifyRecipients(env);
+  if (recipients.length === 0) {
+    console.log("[notify] skipped: no notify recipients", subject);
+    return { sent: false, reason: "no_admin_emails" };
+  }
+
+  const html = brandedHtml(subject, text);
+  const textWithContact = `${text}\n\nContact: ${SUPPORT_EMAIL}\nAdmin: ${ADMIN_URL}`;
+
+  const cf = await sendViaCloudflareEmail(env, recipients, subject, textWithContact, html);
+  if (cf.sent) return cf;
+
+  const resend = await sendViaResend(env, recipients, subject, textWithContact, html);
+  if (resend.sent) return resend;
+
+  console.log(
+    "[notify] skipped: no working mail transport",
+    subject,
+    { cf: cf.reason, resend: resend.reason, to: recipients },
+  );
+  return { sent: false, reason: cf.reason === "no_email_binding" ? resend.reason : cf.reason };
 }
 
 export function registrationNotifyText(email: string, credits: number, userId: string): string {
@@ -165,6 +214,62 @@ export function rechargeNotifyText(opts: {
     `Session: ${opts.sessionId ?? "(none)"}`,
     `When:    ${new Date().toISOString()}`,
   ].join("\n");
+}
+
+export function alertNotifyText(opts: {
+  email: string;
+  userId: string;
+  reason: string;
+  count: number;
+  keyId?: string | null;
+}): string {
+  return [
+    "Account alert on layaaimodel.com",
+    "",
+    `Reason:  ${opts.reason}`,
+    `Email:   ${opts.email}`,
+    `User ID: ${opts.userId}`,
+    `Key ID:  ${opts.keyId ?? "(none)"}`,
+    `Count:   ${opts.count}`,
+    `When:    ${new Date().toISOString()}`,
+  ].join("\n");
+}
+
+/** Record alert + email admin (cooldown per user+reason). */
+export async function recordAlertAndNotify(
+  env: Env,
+  keyId: string | null,
+  userId: string,
+  reason: string,
+  count: number,
+): Promise<void> {
+  const { recordAlert } = await import("./db");
+  await recordAlert(env, keyId ?? "unknown", userId, reason, count);
+
+  const since = new Date(Date.now() - ALERT_EMAIL_COOLDOWN_MS).toISOString();
+  const recent = await env.DB.prepare(
+    `SELECT COUNT(*) as c FROM rate_alerts
+     WHERE user_id = ? AND reason = ? AND ts >= ?`,
+  )
+    .bind(userId, reason, since)
+    .first<{ c: number }>();
+  // recordAlert just inserted one — if more than 1 in window, we already emailed recently.
+  if ((recent?.c ?? 0) > 1) return;
+
+  const user = await env.DB.prepare("SELECT email FROM users WHERE id = ?")
+    .bind(userId)
+    .first<{ email: string }>();
+  await notifyAdmins(
+    env,
+    `Alert: ${reason} · ${user?.email ?? userId}`,
+    alertNotifyText({
+      email: user?.email ?? "(unknown)",
+      userId,
+      reason,
+      count,
+      keyId,
+    }),
+  );
 }
 
 function escapeHtml(s: string): string {
