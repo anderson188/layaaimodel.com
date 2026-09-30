@@ -1,0 +1,3 @@
+# Force apex → www (Cloudflare Pages). Requires apex CNAME to this project.
+https://layaaimodel.com/* https://www.layaaimodel.com/:splat 301
+http://layaaimodel.com/* https://www.layaaimodel.com/:splat 301

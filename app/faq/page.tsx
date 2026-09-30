@@ -3,16 +3,16 @@ import { PageTitle } from "@/components/PageTitle";
 import { canonical, UPSTREAM_REPO } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "FAQ",
+  title: "FAQ — Laya System One",
   description:
-    "FAQ for the Laya System One model: LayaAir, whether Laya can replace Jev, Banking77 limits, and the Apache 2.0 license.",
+    "FAQ for the Laya System One decision model: LayaAir confusion, Laya vs Jev, Banking77 limits, hosted API, and the Apache 2.0 license.",
   alternates: { canonical: canonical("/faq/") },
 };
 
 const faqs = [
   {
     q: "Is Laya the same as LayaAir game engine?",
-    a: "No. LayaAir is a game engine. Laya in this documentation is the System One decision model in the Convai Innovations repository NandhaKishorM/laya. The pages here use the full name Laya AI - Open Source System One Decision Model so the two projects are not mixed up. This site is not affiliated with either project.",
+    a: "No. LayaAir is a game engine. Laya in this documentation is the System One decision model in the Convai Innovations repository NandhaKishorM/laya. The pages here use the full name Laya AI — System One Decision Model so the two projects are not mixed up. This site is not affiliated with either project.",
   },
   {
     q: "What is Laya AI Model?",

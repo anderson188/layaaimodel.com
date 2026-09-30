@@ -4,7 +4,7 @@ function TitleText({ text }: { text: string }) {
   if (text === SITE_TITLE) {
     return (
       <>
-        Laya AI - Open Source System One{" "}
+        Laya AI — System One{" "}
         <span className="whitespace-nowrap">Decision Model</span>
       </>
     );

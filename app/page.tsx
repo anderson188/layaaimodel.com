@@ -129,10 +129,12 @@ export default function Home() {
           </figcaption>
         </figure>
         <div className="mt-8">
-          <PageTitle lede="Laya System One model, compared with Jev. Multilingual, non-autoregressive System One decision engine: typed decisions over 100+ languages in a single forward pass." />
+          <PageTitle lede="Typed decisions for agents and software — choice, score, and yes/no in one forward pass. Hosted prepaid API here; Apache 2.0 weights if you run locally. Compared with the closed Jev API throughout." />
         </div>
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink">
-          Jev is a closed API that works out of the box. Laya is open source, runs locally, and is low latency, and it is weak when one choice question has many labels.
+          Jev is a closed API that works out of the box. Laya is the open System One option: low latency,
+          local weights, and weak when one choice question has many labels. Open source is the license
+          story — System One decision model is the product category.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link href="/account/" className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">

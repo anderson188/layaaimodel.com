@@ -23,9 +23,9 @@ import {
 import { canonical, UPSTREAM_REPO } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Laya benchmark",
+  title: "Laya vs Jev benchmarks",
   description:
-    "Laya benchmark, and a Laya vs Jev benchmark explained: why official self-test scores and Hugging Face community scores do not match.",
+    "Laya vs Jev explained with official self-test tables and Hugging Face community remeasures — typed decisions, Banking77, latency, and calibration side by side.",
   alternates: { canonical: canonical("/benchmarks/") },
 };
 
