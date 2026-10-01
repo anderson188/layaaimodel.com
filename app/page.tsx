@@ -50,13 +50,21 @@ const features = [
   },
   {
     title: "No LLM Hallucinations",
-    body: "The project says there is no text generation, so there is nothing to parse. Outputs are choice, score, and noul. Wrong labels still show up in the tables below.",
+    body: "The project says there is no text generation, so there is nothing to parse. Outputs are choice, score, and yes/no. Wrong labels still show up in the tables below.",
   },
 ];
 
 const useCases = [
-  { href: "/use-cases/#when-laya", title: "Choose Laya", body: "Local, open weights, small label sets, or a checkpoint you fine-tune." },
-  { href: "/use-cases/#when-jev", title: "Keep Jev", body: "Out of the box, or one choice question with more than about 20 labels." },
+  {
+    href: "/use-cases/#when-laya",
+    title: "Laya fits",
+    body: "Local or hosted System One: small label sets, open weights, or a prepaid laya_ key when you do not want to run GPU ops.",
+  },
+  {
+    href: "/use-cases/#when-jev",
+    title: "Where Jev differs",
+    body: "Closed API out of the box, or one choice question with a very wide label set. Want to try hosted Laya first? Packs from $5.",
+  },
 ];
 
 const jsonLd = {
@@ -133,8 +141,8 @@ export default function Home() {
         </div>
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink">
           Jev is a closed API that works out of the box. Laya is the open System One option: low latency,
-          local weights, and weak when one choice question has many labels. Open source is the license
-          story — System One decision model is the product category.
+          local weights, or a hosted prepaid key on this site. Open source is the license story — System One
+          decision model is the product category.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link href="/pricing/" className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
@@ -184,11 +192,12 @@ export default function Home() {
           </figcaption>
         </figure>
         <p className="max-w-3xl text-sm leading-relaxed text-muted">
-          Two sources sit in separate tables on purpose. The first is the project&apos;s own README. The second is a Hugging Face community dataset that remeasured Laya. Jev cells in both places are published quotes unless a caption says otherwise. The write-up of why the figures disagree is the <Link href="/benchmarks/" className="text-accent hover:underline">Laya vs Jev benchmark explained</Link> page.
+          Two sources sit in separate tables on purpose. The first is the project&apos;s own README. The second is a Hugging Face community dataset that remeasured Laya. Jev cells in both places are published quotes unless a caption says otherwise. Limits, calibration notes, and Banking77 detail live on the{" "}
+          <Link href="/benchmarks/" className="text-accent hover:underline">
+            Laya vs Jev benchmarks
+          </Link>{" "}
+          page — including which checkpoint the headline 0.766 figure belongs to.
         </p>
-        <div className="rounded-lg border border-line bg-panel p-5 text-sm leading-relaxed text-muted shadow-glow">
-          On the official typed-decisions run, the base checkpoints score 0.362 and 0.342, under the 0.461 majority-class baseline. The 0.766 figure belongs to <code className="font-mono text-ink">laya-typed-decisions</code>, fine-tuned on that benchmark&apos;s training split. Installing the package does not give you that score.
-        </div>
         <h3 className="text-lg font-medium text-ink">Official self-test</h3>
         <DataTable {...routedVsJev} />
         <h3 className="text-lg font-medium text-ink">Third-party independent test</h3>
@@ -232,6 +241,13 @@ export default function Home() {
             </Link>
           ))}
         </div>
+        <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted">
+          Skip the GPU install —{" "}
+          <Link href="/pricing/" className="text-accent hover:underline">
+            hosted packs from $5
+          </Link>
+          , typical decide ≈ $0.0004.
+        </p>
       </section>
     </div>
   );

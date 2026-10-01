@@ -8,7 +8,7 @@ export const SITE_DESCRIPTION =
 
 /** Homepage meta description — keep ≤160 chars for SERP snippets. */
 export const HOME_DESCRIPTION =
-  "Laya AI System One decision model vs Jev: typed decisions (choice / score / noul), hosted API, and open weights you can run locally.";
+  "Laya AI System One decision model vs Jev: typed decisions (choice / score / yes-no), hosted API, and open weights you can run locally.";
 
 export const SITE_KEYWORDS = [
   "Laya",
@@ -43,19 +43,15 @@ export const NAV = [
 /** Public indexable URLs for sitemap.xml (excludes /account/, /admin/, /console/). */
 export const SITEMAP_ROUTES = [
   { href: "/", priority: 1, changeFrequency: "weekly" as const, lastmod: "2026-10-01" },
-  { href: "/tools/", priority: 0.9, changeFrequency: "weekly" as const, lastmod: "2026-10-01" },
-  { href: "/tools/prompt-guard/", priority: 0.85, changeFrequency: "monthly" as const, lastmod: "2026-10-01" },
-  { href: "/tools/support-triage/", priority: 0.85, changeFrequency: "monthly" as const, lastmod: "2026-09-30" },
-  { href: "/tools/email-triage/", priority: 0.85, changeFrequency: "monthly" as const, lastmod: "2026-09-30" },
-  { href: "/tools/content-moderate/", priority: 0.85, changeFrequency: "monthly" as const, lastmod: "2026-09-30" },
-  { href: "/tools/scam-spot/", priority: 0.85, changeFrequency: "monthly" as const, lastmod: "2026-09-30" },
-  { href: "/tools/agent-risk/", priority: 0.85, changeFrequency: "monthly" as const, lastmod: "2026-10-01" },
+  { href: "/tools/", priority: 0.7, changeFrequency: "weekly" as const, lastmod: "2026-10-01" },
+  // Individual /tools/* landings stay reachable from /tools/ but are omitted from the sitemap —
+  // thin keyword targets that compete with buyer pages for crawl budget.
   { href: "/docs/api/", priority: 0.9, changeFrequency: "monthly" as const, lastmod: "2026-09-29" },
   { href: "/api/", priority: 0.8, changeFrequency: "monthly" as const, lastmod: "2026-09-30" },
-  { href: "/pricing/", priority: 0.8, changeFrequency: "monthly" as const, lastmod: "2026-10-01" },
-  { href: "/get-started/", priority: 0.9, changeFrequency: "monthly" as const, lastmod: "2026-09-23" },
-  { href: "/benchmarks/", priority: 0.9, changeFrequency: "weekly" as const, lastmod: "2026-09-30" },
-  { href: "/use-cases/", priority: 0.8, changeFrequency: "monthly" as const, lastmod: "2026-09-23" },
+  { href: "/pricing/", priority: 0.9, changeFrequency: "monthly" as const, lastmod: "2026-10-01" },
+  { href: "/get-started/", priority: 0.85, changeFrequency: "monthly" as const, lastmod: "2026-09-23" },
+  { href: "/benchmarks/", priority: 0.9, changeFrequency: "weekly" as const, lastmod: "2026-10-01" },
+  { href: "/use-cases/", priority: 0.8, changeFrequency: "monthly" as const, lastmod: "2026-10-01" },
   { href: "/download/", priority: 0.7, changeFrequency: "monthly" as const, lastmod: "2026-10-01" },
   { href: "/faq/", priority: 0.8, changeFrequency: "monthly" as const, lastmod: "2026-09-30" },
   { href: "/status/", priority: 0.5, changeFrequency: "daily" as const, lastmod: "2026-09-29" },

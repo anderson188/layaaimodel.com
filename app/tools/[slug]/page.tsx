@@ -29,6 +29,8 @@ export async function generateMetadata({
     title: page.copy.title,
     description: page.copy.description,
     alternates: { canonical: canonical(`/tools/${slug}/`) },
+    // Thin keyword landings — keep URLs for in-app nav, but do not spend crawl budget here.
+    robots: { index: false, follow: true },
     openGraph: {
       title: `${page.copy.title} | Laya AI`,
       description: page.copy.description,
