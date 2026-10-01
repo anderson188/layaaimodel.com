@@ -57,7 +57,7 @@ export function AccountClient() {
       setMessage("Checkout canceled — no charge was made.");
     }
     if (!saved) {
-      const m = params.get("mode") === "register" ? "register" : "login";
+      const m = params.get("mode") === "login" ? "login" : "register";
       openAuthModal(m);
     }
     if (checkout === "success" && saved) {
@@ -206,16 +206,43 @@ export function AccountClient() {
 
   if (!token || !user) {
     return (
-      <div className="mx-auto max-w-md space-y-5">
-        <p className="text-sm leading-relaxed text-muted">{API_DISCLAIMER}</p>
-        <p className="text-sm text-muted">Sign in to manage API keys, prepaid balance, and usage alerts.</p>
-        <button
-          type="button"
-          onClick={() => openAuthModal("login")}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg"
-        >
-          Sign in
-        </button>
+      <div className="mx-auto max-w-lg space-y-6">
+        <div className="rounded-xl border border-accent/40 bg-panel p-5 shadow-glow">
+          <h2 className="text-base font-semibold text-ink">What you get when you register</h2>
+          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted">
+            <li>
+              Instant <code className="font-mono text-ink">laya_</code> API keys for{" "}
+              <code className="font-mono text-ink">/v1/decide</code> and every tool template.
+            </li>
+            <li>Prepaid balance — buy from $5, no GPU, no torch, no HF download.</li>
+            <li>Typical decide ≈ $0.0004; structured output tokens are free.</li>
+            <li>A small monthly starter grant to verify the key — then top up to keep running.</li>
+            <li>Usage monitor and burn alerts so balance doesn&apos;t silently run out.</li>
+          </ul>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => openAuthModal("register")}
+              className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg"
+            >
+              Create account
+            </button>
+            <button
+              type="button"
+              onClick={() => openAuthModal("login")}
+              className="rounded-md border border-line bg-paper px-4 py-2 text-sm font-medium text-ink hover:border-accent"
+            >
+              Sign in
+            </button>
+            <Link
+              href="/pricing/"
+              className="rounded-md border border-line bg-paper px-4 py-2 text-sm font-medium text-ink hover:border-accent"
+            >
+              See pricing
+            </Link>
+          </div>
+        </div>
+        <p className="text-xs leading-relaxed text-muted">{API_DISCLAIMER}</p>
         {message ? <p className="text-sm text-accent">{message}</p> : null}
       </div>
     );

@@ -7,7 +7,7 @@ import { canonical } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Hosted Laya API Pricing — ≈$0.0004 per decide",
   description:
-    "Prepaid hosted Laya System One API: instant laya_ keys, no GPU ops, ready-made tools. From $5. Typical decide ≈$0.0004. Register, then buy a pack.",
+    "Prepaid hosted Laya System One API: instant laya_ keys, no GPU ops, ready-made tools. From $5. Typical decide ≈$0.0004 — cheaper than routing triage through a chat LLM.",
   alternates: { canonical: canonical("/pricing/") },
 };
 
@@ -20,42 +20,40 @@ export default function PricingPage() {
       />
 
       <section className="max-w-3xl space-y-3 text-sm leading-relaxed text-muted">
-        <h2 className="text-xl font-semibold tracking-tight text-ink">Why hosted (not Jev, not pip install)</h2>
+        <h2 className="text-xl font-semibold tracking-tight text-ink">Priced per decision, not per chat token</h2>
         <p>
-          Published TypeSafe Jev is about <strong className="font-medium text-ink">$0.042 / 1M tokens</strong> —
-          a closed API that works out of the box. Apache 2.0 Laya is{" "}
-          <strong className="font-medium text-ink">$0 to self-host</strong> if you already run GPU/CPU inference.
-          This page sells neither of those.
-        </p>
-        <p>
-          You are buying a <strong className="font-medium text-ink">community hosted gateway</strong>: prepaid
-          metering, instant keys, shared balance for decide + tools, and no model ops. Input rates here (
-          $0.20–$0.42/M) are higher than Jev&apos;s published figure because the product is convenience capacity,
-          not a claim to undercut TypeSafe on raw $/M.
+          System One returns choice / score / yes-no in one forward pass. A typical{" "}
+          <code className="font-mono text-ink">/v1/decide</code> is about{" "}
+          <strong className="font-medium text-ink">$0.0004</strong> — a few tenths of a mill. Routing the same
+          triage or label job through GPT/Claude chat completions usually costs several× that per call (prompt +
+          completion), before you parse free text.
         </p>
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            <strong className="font-medium text-ink">Choose Jev</strong> when you want the closed API, Banking77-scale
-            label sets, or an official vendor relationship.
+            <strong className="font-medium text-ink">Instant key</strong> — register, top up, mint a{" "}
+            <code className="font-mono text-ink">laya_</code> key in minutes.
           </li>
           <li>
-            <strong className="font-medium text-ink">Self-host Laya</strong> when you already own the box, need air-gap,
-            or want zero per-token markup on open weights.
+            <strong className="font-medium text-ink">No GPU ops</strong> — no torch install, no Hugging Face
+            download, no Router preload.
           </li>
           <li>
-            <strong className="font-medium text-ink">Buy hosted here</strong> when you want System One decisions tonight —
-            key in minutes, prepaid so finance does not need a new vendor review, templates for triage / jailbreak
-            gates / scam spot without wiring torch yourself.
+            <strong className="font-medium text-ink">Tools included</strong> — triage, jailbreak gate, scam spot,
+            and more on the same prepaid balance.
           </li>
         </ul>
         <p>
-          Full tables:{" "}
-          <Link className="text-accent hover:underline" href="/benchmarks/">
-            Laya vs Jev benchmarks
-          </Link>
-          . Local install:{" "}
+          Want local weights instead? See{" "}
+          <Link className="text-accent hover:underline" href="/download/">
+            Download
+          </Link>{" "}
+          and{" "}
           <Link className="text-accent hover:underline" href="/get-started/">
             Get started
+          </Link>
+          . Benchmark tables:{" "}
+          <Link className="text-accent hover:underline" href="/benchmarks/">
+            Laya vs Jev
           </Link>
           .
         </p>

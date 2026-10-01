@@ -138,7 +138,7 @@ export function ToolsClient({ initialSlug }: { initialSlug?: string }) {
     >
       <div className="space-y-6">
         <p className="text-sm leading-relaxed text-muted">
-          Anonymous: {anonLeft === null ? "…" : anonLeft} free real-API runs left (no signup). Paste a{" "}
+          Anonymous: {anonLeft === null ? "…" : anonLeft} free run left. Then register or paste a{" "}
           <code className="font-mono text-ink">laya_</code> key to bill your prepaid balance — same meter as{" "}
           <Link className="text-accent hover:underline" href="/docs/api/">
             /v1/decide

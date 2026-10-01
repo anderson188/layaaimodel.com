@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PageTitle } from "@/components/PageTitle";
 import { canonical, UPSTREAM_REPO } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Download",
+  title: "Download Laya — or skip install with hosted API",
   description:
-    "Download Laya: GitHub repo, PyPI package, release wheels, and Hugging Face checkpoints for English and multilingual models.",
+    "Download Laya from GitHub, PyPI, and Hugging Face — or skip GPU setup and get a hosted System One API key in minutes.",
   alternates: { canonical: canonical("/download/") },
 };
 
@@ -52,8 +53,36 @@ export default function DownloadPage() {
     <div className="space-y-10">
       <PageTitle
         section="Download"
-        lede="Links to the upstream source, the current GitHub release, PyPI, and Hugging Face weights. This site does not host model files and does not run inference."
+        lede="Upstream source, release wheels, PyPI, and Hugging Face weights — or skip the install and call the hosted API."
       />
+
+      <section className="max-w-3xl rounded-xl border border-accent/40 bg-panel p-6 shadow-glow">
+        <h2 className="text-lg font-semibold tracking-tight text-ink">Don&apos;t want to install?</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted">
+          No GPU, no torch, no Hugging Face download. Hosted System One on this site: register, buy a prepaid
+          pack, create a <code className="font-mono text-ink">laya_</code> key, call{" "}
+          <code className="font-mono text-ink">/v1/decide</code> in minutes. Typical decide ≈ $0.0004.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link
+            href="/pricing/"
+            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90"
+          >
+            Get hosted API →
+          </Link>
+          <Link
+            href="/account/?mode=register"
+            className="rounded-md border border-line bg-paper px-4 py-2 text-sm font-medium text-ink hover:border-accent"
+          >
+            Create account
+          </Link>
+        </div>
+        <p className="mt-3 text-xs text-muted">
+          Prefer local weights? Keep scrolling — this site does not host model files; links below go to the
+          upstream projects.
+        </p>
+      </section>
+
       <ol className="max-w-3xl list-decimal space-y-2 pl-5 text-sm leading-relaxed text-muted">
         <li>Install with pip, or download the wheel / sdist from the latest GitHub release.</li>
         <li>Weights are not inside the wheel. The first Router or laya.load call downloads them from Hugging Face.</li>

@@ -134,11 +134,11 @@ export function Header() {
                       type="button"
                       onClick={() => {
                         closeMenu();
-                        openAuthModal("login");
+                        openAuthModal("register");
                       }}
                       className="block w-full rounded-md px-2.5 py-1.5 text-left text-sm font-medium text-accent"
                     >
-                      Sign in
+                      Get API key
                     </button>
                   </li>
                 )}
@@ -168,10 +168,10 @@ export function Header() {
             ) : (
               <button
                 type="button"
-                onClick={() => openAuthModal("login")}
+                onClick={() => openAuthModal("register")}
                 className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg hover:opacity-90"
               >
-                Sign in
+                Get API key
               </button>
             )}
           </div>

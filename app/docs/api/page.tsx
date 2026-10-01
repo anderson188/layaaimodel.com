@@ -240,7 +240,7 @@ export default function ApiDocsPage() {
             <ul className="max-w-3xl list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted">
               <li>Rate limit starts ≈ 60/min; higher RPM on Staging+ packs (up to 240).</li>
               <li>Soft burn caps ≈ 5,000,000 tokens/hour and 80,000,000 tokens/day per account.</li>
-              <li>Anonymous tools: 5 free runs/IP. Registered: ~10k free input tokens/month.</li>
+              <li>Anonymous tools: 1 free run/IP. Registered: small monthly starter grant, then prepaid packs.</li>
               <li>
                 Prefer many questions in one <code className="font-mono text-ink">/v1/decide</code>; use batch for many
                 states.

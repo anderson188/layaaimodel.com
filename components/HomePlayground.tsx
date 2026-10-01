@@ -237,8 +237,8 @@ export function HomePlayground() {
             }`}
           />
           {live && anonLeft != null
-            ? `Real API · ${anonLeft}/5 anon runs left`
-            : "Anonymous: 5 free real-API runs / IP · paste a laya_ key on /tools to bill prepaid"}
+            ? `Real API · ${anonLeft}/1 anon run left`
+            : "Anonymous: 1 free real-API run / IP · register for a laya_ key to keep going"}
         </p>
         <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
           <button

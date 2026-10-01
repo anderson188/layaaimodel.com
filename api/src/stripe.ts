@@ -110,6 +110,9 @@ type StripeCheckoutSession = {
   client_reference_id?: string | null;
   metadata?: Record<string, string>;
   payment_status?: string;
+  /** Paid total in the smallest currency unit (e.g. cents). */
+  amount_total?: number | null;
+  currency?: string | null;
   customer_email?: string | null;
   customer_details?: { email?: string | null } | null;
   success_url?: string | null;
@@ -168,14 +171,20 @@ export async function applyPaidCheckout(
     await addCredits(env, userId, credits, "stripe_checkout", session.id);
     await setUserPack(env, userId, layaPack.id);
 
+    const usdFromStripe =
+      typeof session.amount_total === "number" && session.amount_total > 0
+        ? session.amount_total / 100
+        : null;
+    const usd = usdFromStripe ?? layaPack.usd;
     const notify = notifyAdmins(
       env,
-      `Recharge: ${user.email} +${credits.toLocaleString()}`,
+      `Recharge $${usd}: ${user.email}`,
       rechargeNotifyText({
         email: user.email,
         userId,
         packId: layaPack.id,
         credits,
+        usd,
         sessionId: session.id,
       }),
     );

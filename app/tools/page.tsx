@@ -8,7 +8,7 @@ import { TOOL_LANDINGS } from "@/lib/toolLandings";
 export const metadata: Metadata = {
   title: "Decision templates",
   description:
-    "Laya decision templates: support triage, email triage, content moderation, prompt injection guard, scam spotting, and more. Paste a laya_ key or use 5 free anonymous runs.",
+    "Laya decision templates: support triage, email triage, content moderation, prompt injection guard, scam spotting, and more. Paste a laya_ key or try 1 free anonymous run.",
   alternates: { canonical: canonical("/tools/") },
 };
 
@@ -18,7 +18,7 @@ export default function ToolsPage() {
     <div className="space-y-10">
       <PageTitle
         section="Decision templates"
-        lede="Runnable production templates for triage, moderation, agents, and labeling — mirror the same patterns on /v1/decide. Anonymous: 5 free runs. Signed in / pasted key: prepaid balance."
+        lede="Runnable production templates for triage, moderation, agents, and labeling — mirror the same patterns on /v1/decide. Anonymous: 1 free run. Signed in / pasted key: prepaid balance."
       />
 
       <section className="space-y-3">

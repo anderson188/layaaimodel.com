@@ -16,7 +16,7 @@ export default function AccountPage() {
     <div className="space-y-10">
       <PageTitle
         section="Account"
-        lede="Instant laya_ keys, prepaid balance, usage monitor, and burn alerts — the same product shape as unofficial Jev hosts."
+        lede="Register for a laya_ key, prepaid decide calls, and burn alerts — hosted System One without installing torch."
       />
       <AccountClient />
     </div>

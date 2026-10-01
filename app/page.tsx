@@ -137,19 +137,30 @@ export default function Home() {
           story — System One decision model is the product category.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/account/" className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
-            Get API key →
+          <Link href="/pricing/" className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
+            Get hosted API →
+          </Link>
+          <Link href="/account/?mode=register" className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent">
+            Create account
           </Link>
           <a href="#playground" className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent">
             ▶ Try playground
           </a>
-          <Link href="/tools/" className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent">
-            ▶ Try tools
-          </Link>
-          <Link href="/pricing/" className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent">
-            Pricing
+          <Link href="/download/" className="rounded-md border border-line bg-panel px-4 py-2 text-sm font-medium text-ink hover:border-accent">
+            Self-host / download
           </Link>
         </div>
+        <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted">
+          No GPU? Skip pip and weights —{" "}
+          <Link href="/pricing/" className="text-accent hover:underline">
+            prepaid hosted API
+          </Link>
+          , key in minutes, typical decide ≈ $0.0004. Prefer local Apache 2.0 weights? Use{" "}
+          <Link href="/download/" className="text-accent hover:underline">
+            Download
+          </Link>
+          .
+        </p>
       </section>
 
       <HomePlayground />

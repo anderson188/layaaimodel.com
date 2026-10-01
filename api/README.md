@@ -12,7 +12,7 @@ Cloudflare Worker gateway that authenticates customer `laya_…` keys, meters pr
 | Tools | `POST /v1/email/triage`, `/v1/support/triage`, … |
 | Packs | `GET /v1/packs` + Stripe checkout |
 | Account | register / login / keys / usage / alerts |
-| Anon tools | 5 free runs per IP |
+| Anon tools | 1 free run per IP |
 
 ## Setup
 

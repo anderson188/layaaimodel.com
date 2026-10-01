@@ -202,13 +202,17 @@ export function rechargeNotifyText(opts: {
   userId: string;
   packId: string | null;
   credits: number;
+  usd?: number | null;
   sessionId?: string;
 }): string {
+  const amount =
+    opts.usd != null && Number.isFinite(opts.usd) ? `$${opts.usd}` : "(unknown)";
   return [
     "Prepaid pack purchased (Stripe checkout completed)",
     "",
     `Email:   ${opts.email}`,
     `User ID: ${opts.userId}`,
+    `Amount:  ${amount}`,
     `Pack:    ${opts.packId ?? "(unknown)"}`,
     `Credits: +${opts.credits.toLocaleString()}`,
     `Session: ${opts.sessionId ?? "(none)"}`,

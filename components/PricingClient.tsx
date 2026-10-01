@@ -51,17 +51,17 @@ export function PricingClient() {
     <div className="space-y-10">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-lg border border-accent/40 bg-panel px-4 py-3 shadow-glow sm:col-span-2 lg:col-span-1">
-          <p className="text-xs uppercase tracking-wide text-accent">What a call costs</p>
+          <p className="text-xs uppercase tracking-wide text-accent">Per decide</p>
           <p className="mt-1 text-2xl font-semibold text-ink">≈$0.0004</p>
-          <p className="mt-1 text-xs text-muted">per typical /v1/decide (~952 input tokens)</p>
+          <p className="mt-1 text-xs text-muted">typical /v1/decide · vs multi-cent chat-LLM triage</p>
         </div>
         <div className="rounded-lg border border-line bg-panel px-4 py-3 shadow-glow">
-          <p className="text-xs uppercase tracking-wide text-muted">Input tokens</p>
-          <p className="mt-1 text-lg font-semibold text-ink">$0.20–$0.42/M</p>
-          <p className="mt-1 text-xs text-muted">Volume packs cheaper per M</p>
+          <p className="text-xs uppercase tracking-wide text-muted">$5 starter</p>
+          <p className="mt-1 text-lg font-semibold text-ink">≈12.5k decides</p>
+          <p className="mt-1 text-xs text-muted">enough to wire triage / gates in prod</p>
         </div>
         <div className="rounded-lg border border-line bg-panel px-4 py-3 shadow-glow">
-          <p className="text-xs uppercase tracking-wide text-muted">Output tokens</p>
+          <p className="text-xs uppercase tracking-wide text-muted">Output</p>
           <p className="mt-1 text-lg font-semibold text-ink">Free</p>
           <p className="mt-1 text-xs text-muted">Structured answers, not chat completions</p>
         </div>
@@ -80,10 +80,10 @@ export function PricingClient() {
             </div>
             <p className="mt-2 text-3xl font-semibold tracking-tight text-ink">${pack.usd}</p>
             <p className="mt-2 text-sm text-muted">
-              ≈ {pack.tokens.toLocaleString()} input tokens · ${pack.ratePerM}/M
+              ≈ {approxDecideCalls(pack.tokens).toLocaleString()} typical /decide calls
             </p>
             <p className="mt-1 text-xs text-muted">
-              ≈ {approxDecideCalls(pack.tokens).toLocaleString()} typical /decide calls · {pack.rpm} RPM
+              {pack.tokens.toLocaleString()} input tokens · {pack.rpm} RPM
             </p>
             <button
               type="button"
@@ -101,8 +101,8 @@ export function PricingClient() {
         <h2 className="text-xl font-semibold tracking-tight text-ink">Checkout</h2>
         <p>
           Register or sign in first, then buy a pack. Credits land on your Account balance; create a{" "}
-          <code className="font-mono text-ink">laya_</code> key there. Anonymous visitors still get 5 free tool
-          runs; registered accounts also get ~10k free input tokens/month.
+          <code className="font-mono text-ink">laya_</code> key there. Anonymous visitors get 1 free tool run;
+          registered accounts get a small monthly starter grant — enough to verify, not to run prod.
         </p>
         {!token ? (
           <p>

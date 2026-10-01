@@ -42,7 +42,7 @@ export const NAV = [
 
 /** Public indexable URLs for sitemap.xml (excludes /account/, /admin/, /console/). */
 export const SITEMAP_ROUTES = [
-  { href: "/", priority: 1, changeFrequency: "weekly" as const, lastmod: "2026-09-30" },
+  { href: "/", priority: 1, changeFrequency: "weekly" as const, lastmod: "2026-10-01" },
   { href: "/tools/", priority: 0.9, changeFrequency: "weekly" as const, lastmod: "2026-10-01" },
   { href: "/tools/prompt-guard/", priority: 0.85, changeFrequency: "monthly" as const, lastmod: "2026-10-01" },
   { href: "/tools/support-triage/", priority: 0.85, changeFrequency: "monthly" as const, lastmod: "2026-09-30" },
@@ -56,7 +56,7 @@ export const SITEMAP_ROUTES = [
   { href: "/get-started/", priority: 0.9, changeFrequency: "monthly" as const, lastmod: "2026-09-23" },
   { href: "/benchmarks/", priority: 0.9, changeFrequency: "weekly" as const, lastmod: "2026-09-30" },
   { href: "/use-cases/", priority: 0.8, changeFrequency: "monthly" as const, lastmod: "2026-09-23" },
-  { href: "/download/", priority: 0.7, changeFrequency: "monthly" as const, lastmod: "2026-09-23" },
+  { href: "/download/", priority: 0.7, changeFrequency: "monthly" as const, lastmod: "2026-10-01" },
   { href: "/faq/", priority: 0.8, changeFrequency: "monthly" as const, lastmod: "2026-09-30" },
   { href: "/status/", priority: 0.5, changeFrequency: "daily" as const, lastmod: "2026-09-29" },
   { href: "/terms/", priority: 0.3, changeFrequency: "yearly" as const, lastmod: "2026-09-29" },

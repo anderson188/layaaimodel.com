@@ -18,7 +18,7 @@ export const CREDIT_PACKS: CreditPack[] = [
   { id: "volume_500", label: "Volume", usd: 500, tokens: 2_500_000_000, ratePerM: 0.2, rpm: 240 },
 ];
 
-export const ANON_FREE_TOOL_RUNS = 5;
+export const ANON_FREE_TOOL_RUNS = 1;
 export const MONTHLY_FREE_TOKENS = 10_000;
 
 export function packById(id: string): CreditPack | undefined {
