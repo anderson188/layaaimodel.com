@@ -346,26 +346,9 @@ export async function setUserPack(env: Env, userId: string, packId: string): Pro
   await env.DB.prepare("UPDATE users SET pack_id = ? WHERE id = ?").bind(packId, userId).run();
 }
 
-export async function touchBurnAlert(env: Env, userId: string, keyId: string): Promise<void> {
-  const user = await env.DB.prepare("SELECT credits, alert_burn_pct, alert_email_enabled FROM users WHERE id = ?")
-    .bind(userId)
-    .first<{ credits: number; alert_burn_pct: number; alert_email_enabled: number }>();
-  if (!user || !user.alert_email_enabled) return;
-  // Alert when remaining credits are low relative to last purchase / balance snapshot via ledger total purchased.
-  const purchased =
-    (
-      await env.DB.prepare(
-        "SELECT COALESCE(SUM(delta), 0) as c FROM credit_ledger WHERE user_id = ? AND delta > 0",
-      )
-        .bind(userId)
-        .first<{ c: number }>()
-    )?.c ?? 0;
-  if (purchased <= 0) return;
-  const usedPct = ((purchased - user.credits) / purchased) * 100;
-  if (usedPct >= user.alert_burn_pct) {
-    const { recordAlertAndNotify } = await import("./notify");
-    await recordAlertAndNotify(env, keyId, userId, "balance_burn", Math.round(usedPct));
-  }
+/** Previously emailed admins when prepaid balance crossed alert_burn_pct — disabled as noise. */
+export async function touchBurnAlert(_env: Env, _userId: string, _keyId: string): Promise<void> {
+  return;
 }
 
 export async function consumeAnonTrial(env: Env, ipHash: string, maxRuns: number): Promise<boolean> {
