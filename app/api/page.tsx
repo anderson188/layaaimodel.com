@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageTitle } from "@/components/PageTitle";
 import { API_BASE_URL } from "@/lib/api";
-import { canonical } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
+  path: "/api/",
   title: "Hosted Laya API",
   description:
     "Hosted Laya System One API at api.layaaimodel.com: prepaid laya_ keys, /v1/decide, batch, gate, and ready-made tool endpoints with shared metering.",
-  alternates: { canonical: canonical("/api/") },
-};
+});
 
 const highlights = [
   {

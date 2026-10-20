@@ -20,14 +20,14 @@ import {
   whyRoute,
   workflows,
 } from "@/lib/benchmarks";
-import { canonical, UPSTREAM_REPO } from "@/lib/site";
+import { buildPageMetadata, UPSTREAM_REPO } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
+  path: "/benchmarks/",
   title: "Laya vs Jev benchmarks",
   description:
     "Laya vs Jev explained with official self-test tables and Hugging Face community remeasures — typed decisions, Banking77, latency, and calibration side by side.",
-  alternates: { canonical: canonical("/benchmarks/") },
-};
+});
 
 const tables = [
   routedVsJev,

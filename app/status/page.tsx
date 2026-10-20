@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { PageTitle } from "@/components/PageTitle";
 import { StatusClient } from "@/components/StatusClient";
-import { canonical } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
+  path: "/status/",
   title: "Gateway status",
   description:
     "Operational status for the unofficial Laya System One API gateway: upstream mode, catalog pricing probe, and recent error rates.",
-  alternates: { canonical: canonical("/status/") },
-};
+});
 
 export default function StatusPage() {
   return (

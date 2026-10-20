@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageTitle } from "@/components/PageTitle";
-import { canonical } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
+  path: "/use-cases/",
   title: "Use cases — Laya System One vs closed APIs",
   description:
     "Where Laya System One fits (local or hosted) and how it differs from closed decision APIs. Hosted packs from $5.",
-  alternates: { canonical: canonical("/use-cases/") },
-};
+});
 
 const cases = [
   {

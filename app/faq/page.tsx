@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { PageTitle } from "@/components/PageTitle";
-import { canonical, UPSTREAM_REPO } from "@/lib/site";
+import { buildPageMetadata, UPSTREAM_REPO } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
+  path: "/faq/",
   title: "FAQ — Laya System One",
   description:
     "FAQ for the Laya System One decision model: LayaAir confusion, Laya vs Jev, Banking77 limits, hosted API, and the Apache 2.0 license.",
-  alternates: { canonical: canonical("/faq/") },
-};
+});
 
 const faqs = [
   {

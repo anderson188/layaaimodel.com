@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageTitle } from "@/components/PageTitle";
 import { ToolsClient } from "@/components/ToolsClient";
-import { canonical } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/site";
 import { TOOL_LANDINGS } from "@/lib/toolLandings";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
+  path: "/tools/",
   title: "Decision templates",
   description:
     "Laya decision templates: support triage, email triage, content moderation, prompt injection guard, scam spotting, and more. Paste a laya_ key or try 1 free anonymous run.",
-  alternates: { canonical: canonical("/tools/") },
-};
+});
 
 export default function ToolsPage() {
   const guides = Object.values(TOOL_LANDINGS);

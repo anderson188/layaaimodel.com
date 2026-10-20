@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageTitle } from "@/components/PageTitle";
-import { canonical, UPSTREAM_REPO } from "@/lib/site";
+import { buildPageMetadata, UPSTREAM_REPO } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
+  path: "/download/",
   title: "Download Laya — or skip install with hosted API",
   description:
     "Download Laya from GitHub, PyPI, and Hugging Face — or skip GPU setup and get a hosted System One API key in minutes.",
-  alternates: { canonical: canonical("/download/") },
-};
+});
 
 const links = [
   {

@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageTitle } from "@/components/PageTitle";
 import { PricingClient } from "@/components/PricingClient";
-import { canonical } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
+  path: "/pricing/",
   title: "Hosted Laya API Pricing — ≈$0.0004 per decide",
   description:
     "Prepaid hosted Laya System One API: instant laya_ keys, no GPU ops, ready-made tools. From $5. Typical decide ≈$0.0004 — cheaper than routing triage through a chat LLM.",
-  alternates: { canonical: canonical("/pricing/") },
-};
+});
 
 export default function PricingPage() {
   return (

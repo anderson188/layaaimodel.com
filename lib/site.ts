@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 export const SITE_URL = "https://www.layaaimodel.com";
 
 /** Brand + category first; "open source" stays a body selling point, not the Title lead. */
@@ -63,4 +65,39 @@ export function canonical(path: string): string {
   if (path === "/") return `${SITE_URL}/`;
   const withSlash = path.endsWith("/") ? path : `${path}/`;
   return `${SITE_URL}${withSlash}`;
+}
+
+/** Per-page metadata with a page-scoped openGraph.url (not the homepage). */
+export function buildPageMetadata(opts: {
+  path: string;
+  title: string;
+  description: string;
+  image?: string;
+}): Metadata {
+  const url = canonical(opts.path);
+  const image = opts.image ?? SITE_OG_IMAGE;
+  return {
+    title: opts.title,
+    description: opts.description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: opts.title,
+      description: opts.description,
+      url,
+      images: [
+        {
+          url: image,
+          width: 2028,
+          height: 1310,
+          alt: opts.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: opts.title,
+      description: opts.description,
+      images: [image],
+    },
+  };
 }

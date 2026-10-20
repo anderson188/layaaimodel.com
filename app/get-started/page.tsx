@@ -12,14 +12,14 @@ import {
   ROUTE_INSPECT,
   SINGLE_MODEL,
 } from "@/lib/snippets";
-import { canonical } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
+  path: "/get-started/",
   title: "Run Laya locally",
   description:
     "Run Laya locally: pip install laya, Python 3.10+, checkpoint sizes, preload memory pitfalls, and the README Router example.",
-  alternates: { canonical: canonical("/get-started/") },
-};
+});
 
 export default function GetStartedPage() {
   return (

@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageTitle } from "@/components/PageTitle";
-import { canonical, SITE_URL } from "@/lib/site";
+import { buildPageMetadata, SITE_URL } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
+  path: "/privacy/",
   title: "Privacy",
   description:
     "Privacy policy for the unofficial Laya AI community site and prepaid API gateway at layaaimodel.com.",
-  alternates: { canonical: canonical("/privacy/") },
-};
+});
 
 export default function PrivacyPage() {
   return (

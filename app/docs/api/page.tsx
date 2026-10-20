@@ -4,14 +4,14 @@ import { CodeBlock } from "@/components/CodeBlock";
 import { PageTitle } from "@/components/PageTitle";
 import { ScrollSpyDocs } from "@/components/SideNav";
 import { API_BASE_URL, API_DISCLAIMER } from "@/lib/api";
-import { canonical } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
+  path: "/docs/api/",
   title: "API reference",
   description:
     "Laya hosted API reference: /v1/decide, batch, gate, ready-made tools, auth, metering, and errors. Instant laya_ keys.",
-  alternates: { canonical: canonical("/docs/api/") },
-};
+});
 
 const TOC = [
   { id: "disclaimer", label: "Disclaimer" },
