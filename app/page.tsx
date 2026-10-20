@@ -10,12 +10,15 @@ import { HOME_PREVIEW, PIP_INSTALL } from "@/lib/snippets";
 import { canonical, HOME_DESCRIPTION, SITE_DESCRIPTION, SITE_OG_IMAGE, SITE_TITLE, UPSTREAM_REPO } from "@/lib/site";
 import { COMMUNITY_VIDEOS, youtubeThumbUrl, youtubeWatchUrl } from "@/lib/videos";
 
+const HOME_TITLE = "Laya Model — Laya AI System One Decision Engine";
+const HOME_H1 = "Laya Model — the Laya AI System One decision engine";
+
 export const metadata: Metadata = {
-  title: { absolute: SITE_TITLE },
+  title: { absolute: HOME_TITLE },
   description: HOME_DESCRIPTION,
   alternates: { canonical: canonical("/") },
   openGraph: {
-    title: SITE_TITLE,
+    title: HOME_TITLE,
     description: HOME_DESCRIPTION,
     url: canonical("/"),
     images: [
@@ -29,7 +32,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE_TITLE,
+    title: HOME_TITLE,
     description: HOME_DESCRIPTION,
     images: [SITE_OG_IMAGE],
   },
@@ -137,12 +140,15 @@ export default function Home() {
           </figcaption>
         </figure>
         <div className="mt-8">
-          <PageTitle lede="Typed decisions for agents and software — choice, score, and yes/no in one forward pass. Hosted prepaid API here; Apache 2.0 weights if you run locally. Compared with the closed Jev API throughout." />
+          <PageTitle
+            section={HOME_H1}
+            lede="Typed decisions for agents and software — choice, score, and yes/no in one forward pass. Hosted prepaid API here; Apache 2.0 weights if you run locally. Compared with the closed Jev API throughout."
+          />
         </div>
         <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink">
-          Jev is a closed API that works out of the box. Laya is the open System One option: low latency,
-          local weights, or a hosted prepaid key on this site. Open source is the license story — System One
-          decision model is the product category.
+          Laya Model is the common name for Laya AI, the open System One decision engine: low latency,
+          local weights, or a hosted prepaid key on this site. Jev is a closed API that works out of the box.
+          Open source is the license story — System One decision model is the product category.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link href="/pricing/" className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
