@@ -5,13 +5,19 @@ import { DataTable } from "@/components/DataTable";
 import { HomePlayground } from "@/components/HomePlayground";
 import { PageTitle } from "@/components/PageTitle";
 import { VideoGallery } from "@/components/VideoGallery";
-import { caholBanking, luniPhishing, luniTyped, routedVsJev } from "@/lib/benchmarks";
+import { routedVsJev } from "@/lib/benchmarks";
 import { HOME_PREVIEW, PIP_INSTALL } from "@/lib/snippets";
 import { canonical, HOME_DESCRIPTION, SITE_DESCRIPTION, SITE_OG_IMAGE, SITE_TITLE, UPSTREAM_REPO } from "@/lib/site";
 import { COMMUNITY_VIDEOS, youtubeThumbUrl, youtubeWatchUrl } from "@/lib/videos";
 
 const HOME_TITLE = "Laya Model — Laya AI System One Decision Engine";
 const HOME_H1 = "Laya Model — the Laya AI System One decision engine";
+
+/** Homepage teaser: typed-decisions / AG News / DAIR Emotion / Banking77 only. */
+const routedVsJevHome = {
+  ...routedVsJev,
+  rows: routedVsJev.rows.slice(0, 4),
+};
 
 export const metadata: Metadata = {
   title: { absolute: HOME_TITLE },
@@ -198,18 +204,17 @@ export default function Home() {
           </figcaption>
         </figure>
         <p className="max-w-3xl text-sm leading-relaxed text-muted">
-          Two sources sit in separate tables on purpose. The first is the project&apos;s own README. The second is a Hugging Face community dataset that remeasured Laya. Jev cells in both places are published quotes unless a caption says otherwise. Limits, calibration notes, and Banking77 detail live on the{" "}
-          <Link href="/benchmarks/" className="text-accent hover:underline">
-            Laya vs Jev benchmarks
-          </Link>{" "}
-          page — including which checkpoint the headline 0.766 figure belongs to.
+          Two sources sit in separate tables on purpose. The first is the project&apos;s own README. The second is a Hugging Face community dataset that remeasured Laya. Jev cells in both places are published quotes unless a caption says otherwise.
         </p>
         <h3 className="text-lg font-medium text-ink">Official self-test</h3>
-        <DataTable {...routedVsJev} />
-        <h3 className="text-lg font-medium text-ink">Third-party independent test</h3>
-        <DataTable {...luniTyped} />
-        <DataTable {...luniPhishing} />
-        <DataTable {...caholBanking} />
+        <DataTable {...routedVsJevHome} />
+        <p className="max-w-3xl text-sm leading-relaxed text-muted">
+          Full tables, calibration notes, and the third-party remeasurements are on the{" "}
+          <Link href="/benchmarks/" className="text-accent hover:underline">
+            benchmarks page
+          </Link>
+          .
+        </p>
       </section>
 
       <VideoGallery />
