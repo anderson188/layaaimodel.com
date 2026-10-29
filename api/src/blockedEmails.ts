@@ -1,3 +1,5 @@
+import type { Env } from "./env";
+
 /** Domains that can receive public/throwaway mail or are reserved for tests. */
 const BLOCKED_EMAIL_DOMAINS = new Set([
   "layaaimodel.com",
@@ -44,10 +46,31 @@ const BLOCKED_EMAIL_DOMAINS = new Set([
   "invalid",
 ]);
 
-export function isBlockedSignupEmail(email: string): boolean {
+function parseEmailList(raw: string | undefined): string[] {
+  return (raw ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+    .map((e) => e.replace(/^.*<([^>]+)>.*$/, "$1").trim());
+}
+
+/** Owner / admin / notify addresses that must never be used for public signup. */
+export function reservedOwnerEmails(env: Env): Set<string> {
+  const set = new Set<string>([
+    ...parseEmailList(env.ADMIN_EMAILS),
+    ...parseEmailList(env.ADMIN_NOTIFY_EMAILS),
+    ...parseEmailList(env.EMAIL_FROM),
+    "support@layaaimodel.com",
+    "2420133012@qq.com",
+  ]);
+  return set;
+}
+
+export function isBlockedSignupEmail(email: string, env?: Env): boolean {
   const normalized = email.trim().toLowerCase();
   const at = normalized.lastIndexOf("@");
   if (at < 0) return true;
+  if (env && reservedOwnerEmails(env).has(normalized)) return true;
   const domain = normalized.slice(at + 1);
   if (!domain || BLOCKED_EMAIL_DOMAINS.has(domain)) return true;
   // block mailinator-style subdomains e.g. foo.mailinator.com

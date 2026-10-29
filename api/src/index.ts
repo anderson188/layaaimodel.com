@@ -191,7 +191,7 @@ async function handleRegister(env: Env, req: Request, ctx?: ExecutionContext): P
   await ensureAuthTables(env);
 
   const email = body.email.trim().toLowerCase();
-  if (isBlockedSignupEmail(email)) {
+  if (isBlockedSignupEmail(email, env)) {
     return error(FORBIDDEN_EMAIL_MESSAGE, 400, "forbidden_email");
   }
   if (await userExistsByEmail(env, email)) {
