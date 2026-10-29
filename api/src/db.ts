@@ -170,6 +170,40 @@ const AUTH_RATE_WINDOW_MS = 60 * 60 * 1000;
 const VERIFY_CODE_TTL_MS = 30 * 60 * 1000;
 const MAX_VERIFY_ATTEMPTS = 8;
 
+let authTablesReady: Promise<void> | null = null;
+
+/** Idempotent — safe when CI cannot run D1 import (token scope). */
+export async function ensureAuthTables(env: Env): Promise<void> {
+  if (!authTablesReady) {
+    authTablesReady = (async () => {
+      await env.DB.batch([
+        env.DB.prepare(`CREATE TABLE IF NOT EXISTS pending_signups (
+          email TEXT PRIMARY KEY COLLATE NOCASE,
+          password_hash TEXT NOT NULL,
+          salt TEXT NOT NULL,
+          code_hash TEXT NOT NULL,
+          ip_hash TEXT NOT NULL,
+          attempts INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          expires_at TEXT NOT NULL
+        )`),
+        env.DB.prepare(
+          `CREATE INDEX IF NOT EXISTS idx_pending_signups_ip ON pending_signups(ip_hash, created_at)`,
+        ),
+        env.DB.prepare(`CREATE TABLE IF NOT EXISTS auth_rate_limits (
+          bucket TEXT PRIMARY KEY,
+          count INTEGER NOT NULL DEFAULT 0,
+          window_start TEXT NOT NULL
+        )`),
+      ]);
+    })().catch((err) => {
+      authTablesReady = null;
+      throw err;
+    });
+  }
+  await authTablesReady;
+}
+
 export type PendingSignupRow = {
   email: string;
   password_hash: string;

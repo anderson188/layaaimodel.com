@@ -24,13 +24,8 @@ jobs:
           cache: npm
           cache-dependency-path: api/package-lock.json
       - run: npm install
-      - name: Apply D1 migrations
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: api
-          command: d1 execute layaaimodel-api --remote --config wrangler.toml --file=./migrate-email-verify.sql
+      # D1 schema for email verify is ensured at runtime (ensureAuthTables).
+      # Token often lacks D1 import scope; do not block Worker deploy on migrate.
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
         with:

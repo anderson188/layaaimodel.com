@@ -14,6 +14,7 @@ import {
   createSession,
   createUserWithHash,
   deletePendingSignup,
+  ensureAuthTables,
   ensureMonthlyFreeTokens,
   findApiKey,
   generateVerifyCode,
@@ -185,6 +186,8 @@ async function handleRegister(env: Env, req: Request): Promise<Response> {
   if (body.password.length < 8) return error("Password must be at least 8 characters", 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) return error("Invalid email", 400);
 
+  await ensureAuthTables(env);
+
   const email = body.email.trim().toLowerCase();
   if (await userExistsByEmail(env, email)) {
     return error("Email already registered", 409);
@@ -221,6 +224,8 @@ async function handleRegister(env: Env, req: Request): Promise<Response> {
 async function handleVerifyEmail(env: Env, req: Request, ctx?: ExecutionContext): Promise<Response> {
   const body = (await req.json().catch(() => null)) as { email?: string; code?: string } | null;
   if (!body?.email || !body?.code) return error("`email` and `code` are required", 400);
+
+  await ensureAuthTables(env);
 
   const email = body.email.trim().toLowerCase();
   const code = body.code.trim().replace(/\s+/g, "");
@@ -299,6 +304,9 @@ async function handleVerifyEmail(env: Env, req: Request, ctx?: ExecutionContext)
 async function handleResendVerification(env: Env, req: Request): Promise<Response> {
   const body = (await req.json().catch(() => null)) as { email?: string } | null;
   if (!body?.email) return error("`email` is required", 400);
+
+  await ensureAuthTables(env);
+
   const email = body.email.trim().toLowerCase();
 
   if (await userExistsByEmail(env, email)) {
