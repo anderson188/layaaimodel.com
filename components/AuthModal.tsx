@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useId, useState, type FormEvent } from "react";
+import { TurnstileWidget } from "@/components/TurnstileWidget";
 import { apiFetch, SESSION_KEY } from "@/lib/apiClient";
 
 type AuthMode = "login" | "register" | "verify";
@@ -29,6 +30,9 @@ export function AuthModal() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
+  const onTurnstileToken = useCallback((token: string | null) => setTurnstileToken(token), []);
 
   useEffect(() => {
     function onOpen(e: Event) {
@@ -38,6 +42,8 @@ export function AuthModal() {
       setMessage(null);
       setPassword("");
       setCode("");
+      setTurnstileToken(null);
+      setTurnstileReset((n) => n + 1);
       setOpen(true);
     }
     window.addEventListener("laya-open-auth", onOpen);
@@ -91,12 +97,19 @@ export function AuthModal() {
     }
 
     if (mode === "register") {
+      if (!turnstileToken) {
+        setBusy(false);
+        setMessage("Complete the bot check before registering.");
+        return;
+      }
       const res = await apiFetch<RegisterPayload>("/v1/auth/register", {
         method: "POST",
-        body: { email, password },
+        body: { email, password, turnstile_token: turnstileToken },
       });
       setBusy(false);
       if (!res.ok) {
+        setTurnstileToken(null);
+        setTurnstileReset((n) => n + 1);
         if (res.type === "forbidden_email" || /don't mess around/i.test(res.message)) {
           window.alert(res.message);
         }
@@ -187,6 +200,8 @@ export function AuthModal() {
               onClick={() => {
                 setMode("register");
                 setMessage(null);
+                setTurnstileToken(null);
+                setTurnstileReset((n) => n + 1);
               }}
               className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ${
                 mode === "register" ? "bg-accent text-accent-fg" : "text-muted hover:text-ink"
@@ -238,9 +253,12 @@ export function AuthModal() {
               />
             </label>
           )}
+          {mode === "register" ? (
+            <TurnstileWidget onToken={onTurnstileToken} resetKey={turnstileReset} />
+          ) : null}
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || (mode === "register" && !turnstileToken)}
             className="w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg disabled:opacity-60"
           >
             {busy

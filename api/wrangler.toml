@@ -39,3 +39,4 @@ name = "EMAIL"
 # STRIPE_WEBHOOK_SECRET
 # SESSION_PEPPER
 # RESEND_API_KEY (optional fallback if Cloudflare Email is unavailable)
+# TURNSTILE_SECRET (Cloudflare Turnstile siteverify)

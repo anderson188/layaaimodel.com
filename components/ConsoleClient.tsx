@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { TurnstileWidget } from "@/components/TurnstileWidget";
 import { API_BASE_URL, API_DISCLAIMER } from "@/lib/api";
 
 type User = { id: string; email: string; credits: number };
@@ -55,6 +56,9 @@ export function ConsoleClient() {
   const [message, setMessage] = useState<string | null>(null);
   const [newKey, setNewKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = useState(0);
+  const onTurnstileToken = useCallback((token: string | null) => setTurnstileToken(token), []);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(SESSION_KEY);
@@ -116,6 +120,11 @@ export function ConsoleClient() {
     }
 
     if (mode === "register") {
+      if (!turnstileToken) {
+        setBusy(false);
+        setMessage("Complete the bot check before registering.");
+        return;
+      }
       const res = await api<{
         status?: string;
         message?: string;
@@ -123,10 +132,12 @@ export function ConsoleClient() {
         user?: User;
       }>("/v1/auth/register", {
         method: "POST",
-        body: { email, password },
+        body: { email, password, turnstile_token: turnstileToken },
       });
       setBusy(false);
       if (!res.ok) {
+        setTurnstileToken(null);
+        setTurnstileReset((n) => n + 1);
         if (/don't mess around/i.test(res.message)) {
           window.alert(res.message);
         }
@@ -242,6 +253,8 @@ export function ConsoleClient() {
               onClick={() => {
                 setMode("register");
                 setMessage(null);
+                setTurnstileToken(null);
+                setTurnstileReset((n) => n + 1);
               }}
             >
               Register
@@ -288,9 +301,12 @@ export function ConsoleClient() {
               />
             </label>
           )}
+          {mode === "register" ? (
+            <TurnstileWidget onToken={onTurnstileToken} resetKey={turnstileReset} />
+          ) : null}
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || (mode === "register" && !turnstileToken)}
             className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg disabled:opacity-60"
           >
             {mode === "login"

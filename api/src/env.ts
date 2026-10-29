@@ -34,6 +34,8 @@ export interface Env {
   EMAIL_FROM?: string;
   /** Comma-separated inbox for register/recharge/alerts (defaults to ADMIN_EMAILS, then QQ). */
   ADMIN_NOTIFY_EMAILS?: string;
+  /** Cloudflare Turnstile secret (siteverify). */
+  TURNSTILE_SECRET?: string;
 }
 
 export const ALLOWED_MODELS = {

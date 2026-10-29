@@ -43,6 +43,7 @@ import {
   verifiedSignupNotifyText,
 } from "./notify";
 import { findToolHandler } from "./toolHandlers";
+import { verifyTurnstile } from "./turnstile";
 import {
   bearerToken,
   error,
@@ -52,9 +53,14 @@ import {
   withCors,
 } from "./util";
 
+function clientIp(req: Request): string {
+  return (req.headers.get("CF-Connecting-IP") || req.headers.get("X-Forwarded-For") || "local")
+    .split(",")[0]
+    .trim();
+}
+
 function clientIpHash(req: Request): Promise<string> {
-  const ip = req.headers.get("CF-Connecting-IP") || req.headers.get("X-Forwarded-For") || "local";
-  return sha256Hex(ip.split(",")[0].trim());
+  return sha256Hex(clientIp(req));
 }
 
 async function requireUser(env: Env, req: Request) {
@@ -182,10 +188,21 @@ async function handleTool(env: Env, req: Request, path: string): Promise<Respons
 }
 
 async function handleRegister(env: Env, req: Request): Promise<Response> {
-  const body = (await req.json().catch(() => null)) as { email?: string; password?: string } | null;
+  const body = (await req.json().catch(() => null)) as {
+    email?: string;
+    password?: string;
+    turnstile_token?: string;
+    "cf-turnstile-response"?: string;
+  } | null;
   if (!body?.email || !body?.password) return error("`email` and `password` are required", 400);
   if (body.password.length < 8) return error("Password must be at least 8 characters", 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) return error("Invalid email", 400);
+
+  const turnstileToken = body.turnstile_token || body["cf-turnstile-response"];
+  const turnstile = await verifyTurnstile(env, turnstileToken, clientIp(req));
+  if (!turnstile.ok) {
+    return error("Bot check failed. Refresh and try again.", 403, "turnstile_error");
+  }
 
   await ensureAuthTables(env);
 
