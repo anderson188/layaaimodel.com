@@ -38,7 +38,6 @@ import { ANON_FREE_TOOL_RUNS, CREDIT_PACKS, MONTHLY_FREE_TOKENS } from "./packs"
 import { createCheckoutSession, handleStripeWebhook } from "./stripe";
 import {
   notifyAdmins,
-  pendingSignupNotifyText,
   sendUserEmail,
   verificationEmailText,
   verifiedSignupNotifyText,
@@ -182,7 +181,7 @@ async function handleTool(env: Env, req: Request, path: string): Promise<Respons
   });
 }
 
-async function handleRegister(env: Env, req: Request, ctx?: ExecutionContext): Promise<Response> {
+async function handleRegister(env: Env, req: Request): Promise<Response> {
   const body = (await req.json().catch(() => null)) as { email?: string; password?: string } | null;
   if (!body?.email || !body?.password) return error("`email` and `password` are required", 400);
   if (body.password.length < 8) return error("Password must be at least 8 characters", 400);
@@ -199,8 +198,12 @@ async function handleRegister(env: Env, req: Request, ctx?: ExecutionContext): P
   }
 
   const ipHash = await clientIpHash(req);
-  if (!(await consumeAuthRateLimit(env, `reg:${ipHash}`, 5))) {
+  // Tight limits: bots rotate probe@gmail and never verify; stop flooding mail + admin inbox.
+  if (!(await consumeAuthRateLimit(env, `reg:${ipHash}`, 2))) {
     return error("Too many registration attempts from this network. Try again later.", 429, "rate_limit_error");
+  }
+  if (!(await consumeAuthRateLimit(env, "reg:global", 15))) {
+    return error("Registration is temporarily limited. Try again later.", 429, "rate_limit_error");
   }
 
   const code = generateVerifyCode();
@@ -216,13 +219,8 @@ async function handleRegister(env: Env, req: Request, ctx?: ExecutionContext): P
     );
   }
 
-  const notify = notifyAdmins(
-    env,
-    `[PENDING] Signup: ${email}`,
-    pendingSignupNotifyText(email, ipHash),
-  );
-  if (ctx) ctx.waitUntil(notify);
-  else void notify;
+  // No admin email on PENDING — bots never verify and were flooding the notify inbox.
+  // [VERIFIED] still notifies after a real code confirmation.
 
   return json(
     {
@@ -580,7 +578,7 @@ export default {
       } else if (req.method === "POST" && findToolHandler(path)) {
         res = await handleTool(env, req, path);
       } else if (req.method === "POST" && path === "/v1/auth/register") {
-        res = await handleRegister(env, req, ctx);
+        res = await handleRegister(env, req);
       } else if (req.method === "POST" && path === "/v1/auth/verify") {
         res = await handleVerifyEmail(env, req, ctx);
       } else if (req.method === "POST" && path === "/v1/auth/resend-verification") {

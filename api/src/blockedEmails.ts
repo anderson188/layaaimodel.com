@@ -66,12 +66,24 @@ export function reservedOwnerEmails(env: Env): Set<string> {
   return set;
 }
 
+/** Obvious bot / probe local-parts (e.g. probe41793283612@gmail.com). */
+function isProbeLocalPart(local: string): boolean {
+  const base = local.split("+")[0] ?? local;
+  if (/^probe\d/i.test(base)) return true;
+  if (/^probe[_-]?\d/i.test(base)) return true;
+  if (/probe\d{8,}/i.test(base)) return true;
+  if (/^(objtest|objpw|victim|smoke)[_-]?\d/i.test(base)) return true;
+  return false;
+}
+
 export function isBlockedSignupEmail(email: string, env?: Env): boolean {
   const normalized = email.trim().toLowerCase();
   const at = normalized.lastIndexOf("@");
   if (at < 0) return true;
   if (env && reservedOwnerEmails(env).has(normalized)) return true;
+  const local = normalized.slice(0, at);
   const domain = normalized.slice(at + 1);
+  if (isProbeLocalPart(local)) return true;
   if (!domain || BLOCKED_EMAIL_DOMAINS.has(domain)) return true;
   // block mailinator-style subdomains e.g. foo.mailinator.com
   for (const blocked of BLOCKED_EMAIL_DOMAINS) {
