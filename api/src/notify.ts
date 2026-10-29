@@ -157,6 +157,30 @@ async function sendViaResend(
   }
 }
 
+async function deliverMail(
+  env: Env,
+  to: string[],
+  subject: string,
+  text: string,
+): Promise<SendResult> {
+  if (to.length === 0) return { sent: false, reason: "no_recipients" };
+  const html = brandedHtml(subject, text);
+  const textWithContact = `${text}\n\nContact: ${SUPPORT_EMAIL}\nAdmin: ${ADMIN_URL}`;
+
+  const cf = await sendViaCloudflareEmail(env, to, subject, textWithContact, html);
+  if (cf.sent) return cf;
+
+  const resend = await sendViaResend(env, to, subject, textWithContact, html);
+  if (resend.sent) return resend;
+
+  console.log("[notify] skipped: no working mail transport", subject, {
+    cf: cf.reason,
+    resend: resend.reason,
+    to,
+  });
+  return { sent: false, reason: cf.reason === "no_email_binding" ? resend.reason : cf.reason };
+}
+
 /** Fire-and-forget admin email. Prefer Cloudflare Email binding (same as jevtypesafe), else Resend. */
 export async function notifyAdmins(
   env: Env,
@@ -168,22 +192,27 @@ export async function notifyAdmins(
     console.log("[notify] skipped: no notify recipients", subject);
     return { sent: false, reason: "no_admin_emails" };
   }
+  return deliverMail(env, recipients, subject, text);
+}
 
-  const html = brandedHtml(subject, text);
-  const textWithContact = `${text}\n\nContact: ${SUPPORT_EMAIL}\nAdmin: ${ADMIN_URL}`;
+/** Transactional email to one user (verification codes, etc.). */
+export async function sendUserEmail(
+  env: Env,
+  to: string,
+  subject: string,
+  text: string,
+): Promise<SendResult> {
+  return deliverMail(env, [to.trim().toLowerCase()], subject, text);
+}
 
-  const cf = await sendViaCloudflareEmail(env, recipients, subject, textWithContact, html);
-  if (cf.sent) return cf;
-
-  const resend = await sendViaResend(env, recipients, subject, textWithContact, html);
-  if (resend.sent) return resend;
-
-  console.log(
-    "[notify] skipped: no working mail transport",
-    subject,
-    { cf: cf.reason, resend: resend.reason, to: recipients },
-  );
-  return { sent: false, reason: cf.reason === "no_email_binding" ? resend.reason : cf.reason };
+export function verificationEmailText(code: string): string {
+  return [
+    "Confirm your Laya AI account.",
+    "",
+    `Your verification code is: ${code}`,
+    "",
+    "It expires in 30 minutes. If you did not sign up, ignore this email.",
+  ].join("\n");
 }
 
 export function registrationNotifyText(email: string, credits: number, userId: string): string {

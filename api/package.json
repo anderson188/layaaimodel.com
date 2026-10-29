@@ -10,6 +10,8 @@
     "db:remote": "wrangler d1 execute layaaimodel-api --remote --config wrangler.toml --file=./schema.sql",
     "db:migrate:local": "wrangler d1 execute layaaimodel-api --local --config wrangler.toml --file=./migrate.sql",
     "db:migrate:remote": "wrangler d1 execute layaaimodel-api --remote --config wrangler.toml --file=./migrate.sql",
+    "db:migrate:email-verify:local": "wrangler d1 execute layaaimodel-api --local --config wrangler.toml --file=./migrate-email-verify.sql",
+    "db:migrate:email-verify:remote": "wrangler d1 execute layaaimodel-api --remote --config wrangler.toml --file=./migrate-email-verify.sql",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

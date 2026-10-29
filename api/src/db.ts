@@ -111,17 +111,28 @@ export async function createUser(
   email: string,
   password: string,
 ): Promise<{ user: UserRow; sessionToken: string }> {
-  const id = uuid();
   const salt = randomToken(16);
   const pepper = env.SESSION_PEPPER ?? "dev-pepper";
   const password_hash = await hashPassword(password, salt, pepper);
+  return createUserWithHash(env, email, password_hash, salt);
+}
+
+/** Create a user from already-hashed credentials (email verification path). */
+export async function createUserWithHash(
+  env: Env,
+  email: string,
+  password_hash: string,
+  salt: string,
+): Promise<{ user: UserRow; sessionToken: string }> {
+  const id = uuid();
   const created_at = nowIso();
   const credits = parseIntEnv(env.DEFAULT_SIGNUP_CREDITS, MONTHLY_FREE_TOKENS);
+  const normalized = email.toLowerCase();
 
   await env.DB.prepare(
     "INSERT INTO users (id, email, password_hash, salt, credits, pack_id, alert_email_enabled, alert_burn_pct, disabled, is_admin, created_at) VALUES (?, ?, ?, ?, ?, NULL, 1, 80, 0, ?, ?)",
   )
-    .bind(id, email.toLowerCase(), password_hash, salt, credits, isAdminEmail(env, email) ? 1 : 0, created_at)
+    .bind(id, normalized, password_hash, salt, credits, isAdminEmail(env, normalized) ? 1 : 0, created_at)
     .run();
 
   if (credits > 0) {
@@ -141,7 +152,7 @@ export async function createUser(
   const sessionToken = await createSession(env, id);
   const user: UserRow = {
     id,
-    email: email.toLowerCase(),
+    email: normalized,
     password_hash,
     salt,
     credits,
@@ -149,10 +160,118 @@ export async function createUser(
     alert_email_enabled: 1,
     alert_burn_pct: 80,
     disabled: 0,
-    is_admin: isAdminEmail(env, email) ? 1 : 0,
+    is_admin: isAdminEmail(env, normalized) ? 1 : 0,
     created_at,
   };
   return { user, sessionToken };
+}
+
+const AUTH_RATE_WINDOW_MS = 60 * 60 * 1000;
+const VERIFY_CODE_TTL_MS = 30 * 60 * 1000;
+const MAX_VERIFY_ATTEMPTS = 8;
+
+export type PendingSignupRow = {
+  email: string;
+  password_hash: string;
+  salt: string;
+  code_hash: string;
+  ip_hash: string;
+  attempts: number;
+  created_at: string;
+  expires_at: string;
+};
+
+/** Sliding 1h window. Returns false if the bucket would exceed `max`. */
+export async function consumeAuthRateLimit(
+  env: Env,
+  bucket: string,
+  max: number,
+): Promise<boolean> {
+  const now = Date.now();
+  const row = await env.DB.prepare(
+    "SELECT count, window_start FROM auth_rate_limits WHERE bucket = ?",
+  )
+    .bind(bucket)
+    .first<{ count: number; window_start: string }>();
+
+  if (!row || now - Date.parse(row.window_start) > AUTH_RATE_WINDOW_MS) {
+    await env.DB.prepare(
+      "INSERT INTO auth_rate_limits (bucket, count, window_start) VALUES (?, 1, ?) ON CONFLICT(bucket) DO UPDATE SET count = 1, window_start = excluded.window_start",
+    )
+      .bind(bucket, new Date(now).toISOString())
+      .run();
+    return true;
+  }
+  if (row.count >= max) return false;
+  await env.DB.prepare("UPDATE auth_rate_limits SET count = count + 1 WHERE bucket = ?")
+    .bind(bucket)
+    .run();
+  return true;
+}
+
+export function generateVerifyCode(): string {
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  return String(arr[0] % 1_000_000).padStart(6, "0");
+}
+
+export async function upsertPendingSignup(
+  env: Env,
+  opts: { email: string; password: string; ipHash: string; code: string },
+): Promise<void> {
+  const salt = randomToken(16);
+  const pepper = env.SESSION_PEPPER ?? "dev-pepper";
+  const password_hash = await hashPassword(opts.password, salt, pepper);
+  const code_hash = await sha256Hex(opts.code);
+  const created_at = nowIso();
+  const expires_at = new Date(Date.now() + VERIFY_CODE_TTL_MS).toISOString();
+  const email = opts.email.toLowerCase();
+
+  await env.DB.prepare(
+    `INSERT INTO pending_signups (email, password_hash, salt, code_hash, ip_hash, attempts, created_at, expires_at)
+     VALUES (?, ?, ?, ?, ?, 0, ?, ?)
+     ON CONFLICT(email) DO UPDATE SET
+       password_hash = excluded.password_hash,
+       salt = excluded.salt,
+       code_hash = excluded.code_hash,
+       ip_hash = excluded.ip_hash,
+       attempts = 0,
+       created_at = excluded.created_at,
+       expires_at = excluded.expires_at`,
+  )
+    .bind(email, password_hash, salt, code_hash, opts.ipHash, created_at, expires_at)
+    .run();
+}
+
+export async function getPendingSignup(env: Env, email: string): Promise<PendingSignupRow | null> {
+  return (
+    (await env.DB.prepare("SELECT * FROM pending_signups WHERE email = ?")
+      .bind(email.toLowerCase())
+      .first<PendingSignupRow>()) ?? null
+  );
+}
+
+export async function deletePendingSignup(env: Env, email: string): Promise<void> {
+  await env.DB.prepare("DELETE FROM pending_signups WHERE email = ?")
+    .bind(email.toLowerCase())
+    .run();
+}
+
+export async function bumpPendingVerifyAttempts(env: Env, email: string): Promise<number> {
+  await env.DB.prepare("UPDATE pending_signups SET attempts = attempts + 1 WHERE email = ?")
+    .bind(email.toLowerCase())
+    .run();
+  const row = await getPendingSignup(env, email);
+  return row?.attempts ?? MAX_VERIFY_ATTEMPTS;
+}
+
+export { MAX_VERIFY_ATTEMPTS };
+
+export async function userExistsByEmail(env: Env, email: string): Promise<boolean> {
+  const row = await env.DB.prepare("SELECT id FROM users WHERE email = ?")
+    .bind(email.toLowerCase())
+    .first();
+  return !!row;
 }
 
 export async function verifyUser(env: Env, email: string, password: string): Promise<UserRow | null> {

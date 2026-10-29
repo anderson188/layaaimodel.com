@@ -50,7 +50,8 @@ export function ConsoleClient() {
   const [usage, setUsage] = useState<UsageRow[]>([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register" | "verify">("login");
+  const [code, setCode] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [newKey, setNewKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -95,8 +96,54 @@ export function ConsoleClient() {
     e.preventDefault();
     setBusy(true);
     setMessage(null);
-    const path = mode === "login" ? "/v1/auth/login" : "/v1/auth/register";
-    const res = await api<{ session_token: string; user: User }>(path, {
+
+    if (mode === "verify") {
+      const res = await api<{ session_token: string; user: User }>("/v1/auth/verify", {
+        method: "POST",
+        body: { email, code },
+      });
+      setBusy(false);
+      if (!res.ok) {
+        setMessage(res.message);
+        return;
+      }
+      window.localStorage.setItem(SESSION_KEY, res.data.session_token);
+      setToken(res.data.session_token);
+      setUser(res.data.user);
+      setPassword("");
+      setCode("");
+      return;
+    }
+
+    if (mode === "register") {
+      const res = await api<{
+        status?: string;
+        message?: string;
+        session_token?: string;
+        user?: User;
+      }>("/v1/auth/register", {
+        method: "POST",
+        body: { email, password },
+      });
+      setBusy(false);
+      if (!res.ok) {
+        setMessage(res.message);
+        return;
+      }
+      if (res.data.session_token && res.data.user) {
+        window.localStorage.setItem(SESSION_KEY, res.data.session_token);
+        setToken(res.data.session_token);
+        setUser(res.data.user);
+        setPassword("");
+        return;
+      }
+      setMode("verify");
+      setCode("");
+      setMessage(res.data.message || "Check your email for a 6-digit code.");
+      return;
+    }
+
+    const res = await api<{ session_token: string; user: User }>("/v1/auth/login", {
       method: "POST",
       body: { email, password },
     });
@@ -109,6 +156,17 @@ export function ConsoleClient() {
     setToken(res.data.session_token);
     setUser(res.data.user);
     setPassword("");
+  }
+
+  async function resendCode() {
+    setBusy(true);
+    setMessage(null);
+    const res = await api<{ message?: string }>("/v1/auth/resend-verification", {
+      method: "POST",
+      body: { email },
+    });
+    setBusy(false);
+    setMessage(res.ok ? res.data.message || "A new code was sent." : res.message);
   }
 
   function logout() {
@@ -163,22 +221,32 @@ export function ConsoleClient() {
     return (
       <div className="mx-auto max-w-md space-y-6">
         <p className="text-sm leading-relaxed text-muted">{API_DISCLAIMER}</p>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${mode === "login" ? "bg-accent text-accent-fg" : "border border-line bg-panel"}`}
-            onClick={() => setMode("login")}
-          >
-            Log in
-          </button>
-          <button
-            type="button"
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${mode === "register" ? "bg-accent text-accent-fg" : "border border-line bg-panel"}`}
-            onClick={() => setMode("register")}
-          >
-            Register
-          </button>
-        </div>
+        {mode !== "verify" ? (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${mode === "login" ? "bg-accent text-accent-fg" : "border border-line bg-panel"}`}
+              onClick={() => {
+                setMode("login");
+                setMessage(null);
+              }}
+            >
+              Log in
+            </button>
+            <button
+              type="button"
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${mode === "register" ? "bg-accent text-accent-fg" : "border border-line bg-panel"}`}
+              onClick={() => {
+                setMode("register");
+                setMessage(null);
+              }}
+            >
+              Register
+            </button>
+          </div>
+        ) : (
+          <p className="text-sm text-muted">Enter the 6-digit code we emailed to {email}.</p>
+        )}
         <form onSubmit={submitAuth} className="space-y-3">
           <label className="block space-y-1 text-sm">
             <span className="text-muted">Email</span>
@@ -187,28 +255,58 @@ export function ConsoleClient() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-line bg-code px-3 py-2 text-ink"
+              readOnly={mode === "verify"}
+              className="w-full rounded-md border border-line bg-code px-3 py-2 text-ink read-only:opacity-80"
             />
           </label>
-          <label className="block space-y-1 text-sm">
-            <span className="text-muted">Password</span>
-            <input
-              required
-              minLength={8}
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-line bg-code px-3 py-2 text-ink"
-            />
-          </label>
+          {mode === "verify" ? (
+            <label className="block space-y-1 text-sm">
+              <span className="text-muted">6-digit code</span>
+              <input
+                required
+                inputMode="numeric"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                className="w-full rounded-md border border-line bg-code px-3 py-2 font-mono text-ink tracking-widest"
+              />
+            </label>
+          ) : (
+            <label className="block space-y-1 text-sm">
+              <span className="text-muted">Password</span>
+              <input
+                required
+                minLength={8}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-md border border-line bg-code px-3 py-2 text-ink"
+              />
+            </label>
+          )}
           <button
             type="submit"
             disabled={busy}
             className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg disabled:opacity-60"
           >
-            {mode === "login" ? "Log in" : "Create account"}
+            {mode === "login"
+              ? "Log in"
+              : mode === "verify"
+                ? "Verify and continue"
+                : "Send verification code"}
           </button>
         </form>
+        {mode === "verify" ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void resendCode()}
+            className="text-sm text-accent hover:underline disabled:opacity-60"
+          >
+            Resend code
+          </button>
+        ) : null}
         {message ? <p className="text-sm text-accent">{message}</p> : null}
         <p className="text-xs text-muted">
           API base: <code className="font-mono">{API_BASE_URL}</code>

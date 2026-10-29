@@ -7,18 +7,26 @@ import {
 } from "./admin";
 import {
   anonTrialRemaining,
+  bumpPendingVerifyAttempts,
   consumeAnonTrial,
+  consumeAuthRateLimit,
   createApiKey,
   createSession,
-  createUser,
+  createUserWithHash,
+  deletePendingSignup,
   ensureMonthlyFreeTokens,
   findApiKey,
+  generateVerifyCode,
+  getPendingSignup,
   getSetting,
+  MAX_VERIFY_ATTEMPTS,
   recentUpstreamStats,
   resolveUpstreamMode,
   revokeApiKey,
   syncUserAdminFlag,
+  upsertPendingSignup,
   usageSummary,
+  userExistsByEmail,
   userFromSession,
   verifyUser,
 } from "./db";
@@ -26,7 +34,12 @@ import { runDecide, runGate } from "./decide";
 import type { Env } from "./env";
 import { ANON_FREE_TOOL_RUNS, CREDIT_PACKS, MONTHLY_FREE_TOKENS } from "./packs";
 import { createCheckoutSession, handleStripeWebhook } from "./stripe";
-import { notifyAdmins, registrationNotifyText } from "./notify";
+import {
+  notifyAdmins,
+  registrationNotifyText,
+  sendUserEmail,
+  verificationEmailText,
+} from "./notify";
 import { findToolHandler } from "./toolHandlers";
 import {
   bearerToken,
@@ -36,6 +49,11 @@ import {
   sha256Hex,
   withCors,
 } from "./util";
+
+function clientIpHash(req: Request): Promise<string> {
+  const ip = req.headers.get("CF-Connecting-IP") || req.headers.get("X-Forwarded-For") || "local";
+  return sha256Hex(ip.split(",")[0].trim());
+}
 
 async function requireUser(env: Env, req: Request) {
   const token = bearerToken(req);
@@ -161,13 +179,92 @@ async function handleTool(env: Env, req: Request, path: string): Promise<Respons
   });
 }
 
-async function handleRegister(env: Env, req: Request, ctx?: ExecutionContext): Promise<Response> {
+async function handleRegister(env: Env, req: Request): Promise<Response> {
   const body = (await req.json().catch(() => null)) as { email?: string; password?: string } | null;
   if (!body?.email || !body?.password) return error("`email` and `password` are required", 400);
   if (body.password.length < 8) return error("Password must be at least 8 characters", 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) return error("Invalid email", 400);
+
+  const email = body.email.trim().toLowerCase();
+  if (await userExistsByEmail(env, email)) {
+    return error("Email already registered", 409);
+  }
+
+  const ipHash = await clientIpHash(req);
+  if (!(await consumeAuthRateLimit(env, `reg:${ipHash}`, 5))) {
+    return error("Too many registration attempts from this network. Try again later.", 429, "rate_limit_error");
+  }
+
+  const code = generateVerifyCode();
+  await upsertPendingSignup(env, { email, password: body.password, ipHash, code });
+
+  const sent = await sendUserEmail(env, email, "Your verification code", verificationEmailText(code));
+  if (!sent.sent) {
+    console.error("[auth] verification email failed", email, sent.reason);
+    return error(
+      "Could not send verification email. Check the address or try again in a few minutes.",
+      503,
+      "email_delivery_error",
+    );
+  }
+
+  return json(
+    {
+      status: "verification_required",
+      email,
+      message: "Check your email for a 6-digit verification code.",
+    },
+    200,
+  );
+}
+
+async function handleVerifyEmail(env: Env, req: Request, ctx?: ExecutionContext): Promise<Response> {
+  const body = (await req.json().catch(() => null)) as { email?: string; code?: string } | null;
+  if (!body?.email || !body?.code) return error("`email` and `code` are required", 400);
+
+  const email = body.email.trim().toLowerCase();
+  const code = body.code.trim().replace(/\s+/g, "");
+  if (!/^\d{6}$/.test(code)) return error("Invalid verification code", 400);
+
+  const ipHash = await clientIpHash(req);
+  if (!(await consumeAuthRateLimit(env, `verify:${ipHash}`, 30))) {
+    return error("Too many verification attempts. Try again later.", 429, "rate_limit_error");
+  }
+
+  if (await userExistsByEmail(env, email)) {
+    return error("Email already registered — log in instead", 409);
+  }
+
+  const pending = await getPendingSignup(env, email);
+  if (!pending) return error("No pending signup for this email. Register again.", 404);
+  if (Date.parse(pending.expires_at) < Date.now()) {
+    await deletePendingSignup(env, email);
+    return error("Verification code expired. Register again to get a new code.", 410);
+  }
+  if (pending.attempts >= MAX_VERIFY_ATTEMPTS) {
+    await deletePendingSignup(env, email);
+    return error("Too many wrong codes. Register again to get a new code.", 429, "rate_limit_error");
+  }
+
+  const codeHash = await sha256Hex(code);
+  if (codeHash !== pending.code_hash) {
+    const attempts = await bumpPendingVerifyAttempts(env, email);
+    if (attempts >= MAX_VERIFY_ATTEMPTS) {
+      await deletePendingSignup(env, email);
+      return error("Too many wrong codes. Register again to get a new code.", 429, "rate_limit_error");
+    }
+    return error("Incorrect verification code", 401, "authentication_error");
+  }
+
   try {
-    const { user, sessionToken } = await createUser(env, body.email, body.password);
+    const { user, sessionToken } = await createUserWithHash(
+      env,
+      email,
+      pending.password_hash,
+      pending.salt,
+    );
+    await deletePendingSignup(env, email);
+
     const notify = notifyAdmins(
       env,
       `New registration: ${user.email}`,
@@ -175,6 +272,7 @@ async function handleRegister(env: Env, req: Request, ctx?: ExecutionContext): P
     );
     if (ctx) ctx.waitUntil(notify);
     else void notify;
+
     return json(
       {
         user: {
@@ -191,10 +289,47 @@ async function handleRegister(env: Env, req: Request, ctx?: ExecutionContext): P
   } catch (err) {
     const msg = String(err);
     if (msg.includes("UNIQUE") || msg.toLowerCase().includes("constraint")) {
+      await deletePendingSignup(env, email);
       return error("Email already registered", 409);
     }
     throw err;
   }
+}
+
+async function handleResendVerification(env: Env, req: Request): Promise<Response> {
+  const body = (await req.json().catch(() => null)) as { email?: string } | null;
+  if (!body?.email) return error("`email` is required", 400);
+  const email = body.email.trim().toLowerCase();
+
+  if (await userExistsByEmail(env, email)) {
+    return error("Email already registered — log in instead", 409);
+  }
+
+  const emailHash = await sha256Hex(email);
+  if (!(await consumeAuthRateLimit(env, `resend:${emailHash}`, 3))) {
+    return error("Too many resend requests. Wait before trying again.", 429, "rate_limit_error");
+  }
+
+  const pending = await getPendingSignup(env, email);
+  if (!pending) return error("No pending signup for this email. Register again.", 404);
+
+  const ipHash = await clientIpHash(req);
+  const code = generateVerifyCode();
+  // Re-hash password is already stored — only rotate code via upsert with dummy password path.
+  // Use direct update to keep the same password_hash/salt.
+  const code_hash = await sha256Hex(code);
+  const expires_at = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+  await env.DB.prepare(
+    `UPDATE pending_signups SET code_hash = ?, ip_hash = ?, attempts = 0, created_at = ?, expires_at = ? WHERE email = ?`,
+  )
+    .bind(code_hash, ipHash, nowIso(), expires_at, email)
+    .run();
+
+  const sent = await sendUserEmail(env, email, "Your verification code", verificationEmailText(code));
+  if (!sent.sent) {
+    return error("Could not send verification email. Try again shortly.", 503, "email_delivery_error");
+  }
+  return json({ status: "verification_required", email, message: "A new code was sent." });
 }
 
 async function handleLogin(env: Env, req: Request): Promise<Response> {
@@ -424,7 +559,11 @@ export default {
       } else if (req.method === "POST" && findToolHandler(path)) {
         res = await handleTool(env, req, path);
       } else if (req.method === "POST" && path === "/v1/auth/register") {
-        res = await handleRegister(env, req, ctx);
+        res = await handleRegister(env, req);
+      } else if (req.method === "POST" && path === "/v1/auth/verify") {
+        res = await handleVerifyEmail(env, req, ctx);
+      } else if (req.method === "POST" && path === "/v1/auth/resend-verification") {
+        res = await handleResendVerification(env, req);
       } else if (req.method === "POST" && path === "/v1/auth/login") {
         res = await handleLogin(env, req);
       } else if (req.method === "GET" && path === "/v1/me") {

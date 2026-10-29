@@ -118,27 +118,9 @@ async function post(path, body, headers = {}) {
 
 async function ensureApiKey() {
   if (process.env.LAYA_API_KEY) return process.env.LAYA_API_KEY;
-  const email = `smoke+${Date.now()}@layaaimodel.test`;
-  const password = `SmokeTest-${Date.now()}!`;
-  const reg = await fetch(`${BASE}/v1/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  const regBody = await reg.json();
-  if (!reg.ok) throw new Error(`register failed ${reg.status}: ${JSON.stringify(regBody)}`);
-  const keyRes = await fetch(`${BASE}/v1/keys`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${regBody.session_token}`,
-    },
-    body: JSON.stringify({ label: "gateway-smoke" }),
-  });
-  const keyBody = await keyRes.json();
-  if (!keyRes.ok) throw new Error(`create key failed ${keyRes.status}: ${JSON.stringify(keyBody)}`);
-  console.log(`[auth] registered ${email}`);
-  return keyBody.key || keyBody.token || keyBody.api_key;
+  throw new Error(
+    "Set LAYA_API_KEY=laya_... — register now requires email verification and cannot mint a smoke key alone.",
+  );
 }
 
 async function main() {

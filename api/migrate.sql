@@ -22,3 +22,5 @@ CREATE INDEX IF NOT EXISTS idx_usage_user_ts ON usage_events(user_id, ts);
 
 ALTER TABLE users ADD COLUMN disabled INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0;
+
+-- Newer additive migrations: see migrate-email-verify.sql
