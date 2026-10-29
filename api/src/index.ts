@@ -31,6 +31,7 @@ import {
   userFromSession,
   verifyUser,
 } from "./db";
+import { FORBIDDEN_EMAIL_MESSAGE, isBlockedSignupEmail } from "./blockedEmails";
 import { runDecide, runGate } from "./decide";
 import type { Env } from "./env";
 import { ANON_FREE_TOOL_RUNS, CREDIT_PACKS, MONTHLY_FREE_TOKENS } from "./packs";
@@ -190,8 +191,8 @@ async function handleRegister(env: Env, req: Request, ctx?: ExecutionContext): P
   await ensureAuthTables(env);
 
   const email = body.email.trim().toLowerCase();
-  if (email.endsWith("@layaaimodel.com") || email.endsWith("@example.com") || email.endsWith("@example.org")) {
-    return error("Don't mess around. Use your own email — not a reserved or fake domain.", 400, "forbidden_email");
+  if (isBlockedSignupEmail(email)) {
+    return error(FORBIDDEN_EMAIL_MESSAGE, 400, "forbidden_email");
   }
   if (await userExistsByEmail(env, email)) {
     return error("Email already registered", 409);
