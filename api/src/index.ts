@@ -37,9 +37,10 @@ import { ANON_FREE_TOOL_RUNS, CREDIT_PACKS, MONTHLY_FREE_TOKENS } from "./packs"
 import { createCheckoutSession, handleStripeWebhook } from "./stripe";
 import {
   notifyAdmins,
-  registrationNotifyText,
+  pendingSignupNotifyText,
   sendUserEmail,
   verificationEmailText,
+  verifiedSignupNotifyText,
 } from "./notify";
 import { findToolHandler } from "./toolHandlers";
 import {
@@ -180,7 +181,7 @@ async function handleTool(env: Env, req: Request, path: string): Promise<Respons
   });
 }
 
-async function handleRegister(env: Env, req: Request): Promise<Response> {
+async function handleRegister(env: Env, req: Request, ctx?: ExecutionContext): Promise<Response> {
   const body = (await req.json().catch(() => null)) as { email?: string; password?: string } | null;
   if (!body?.email || !body?.password) return error("`email` and `password` are required", 400);
   if (body.password.length < 8) return error("Password must be at least 8 characters", 400);
@@ -189,6 +190,9 @@ async function handleRegister(env: Env, req: Request): Promise<Response> {
   await ensureAuthTables(env);
 
   const email = body.email.trim().toLowerCase();
+  if (email.endsWith("@layaaimodel.com")) {
+    return error("Please use a personal email address — @layaaimodel.com cannot be used to register.", 400);
+  }
   if (await userExistsByEmail(env, email)) {
     return error("Email already registered", 409);
   }
@@ -210,6 +214,14 @@ async function handleRegister(env: Env, req: Request): Promise<Response> {
       "email_delivery_error",
     );
   }
+
+  const notify = notifyAdmins(
+    env,
+    `[PENDING] Signup: ${email}`,
+    pendingSignupNotifyText(email, ipHash),
+  );
+  if (ctx) ctx.waitUntil(notify);
+  else void notify;
 
   return json(
     {
@@ -272,8 +284,8 @@ async function handleVerifyEmail(env: Env, req: Request, ctx?: ExecutionContext)
 
     const notify = notifyAdmins(
       env,
-      `New registration: ${user.email}`,
-      registrationNotifyText(user.email, user.credits, user.id),
+      `[VERIFIED] Real signup: ${user.email}`,
+      verifiedSignupNotifyText(user.email, user.credits, user.id),
     );
     if (ctx) ctx.waitUntil(notify);
     else void notify;
@@ -567,7 +579,7 @@ export default {
       } else if (req.method === "POST" && findToolHandler(path)) {
         res = await handleTool(env, req, path);
       } else if (req.method === "POST" && path === "/v1/auth/register") {
-        res = await handleRegister(env, req);
+        res = await handleRegister(env, req, ctx);
       } else if (req.method === "POST" && path === "/v1/auth/verify") {
         res = await handleVerifyEmail(env, req, ctx);
       } else if (req.method === "POST" && path === "/v1/auth/resend-verification") {

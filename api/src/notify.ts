@@ -215,9 +215,25 @@ export function verificationEmailText(code: string): string {
   ].join("\n");
 }
 
-export function registrationNotifyText(email: string, credits: number, userId: string): string {
+/** Admin alert when someone requests a signup code (may never verify). */
+export function pendingSignupNotifyText(email: string, ipHash: string): string {
   return [
-    "New user registered on layaaimodel.com",
+    "[PENDING] Signup started — verification code emailed",
+    "This is NOT a completed account yet. Many of these will never verify.",
+    "",
+    `Email:   ${email}`,
+    `IP hash: ${ipHash.slice(0, 12)}…`,
+    `When:    ${new Date().toISOString()}`,
+    "",
+    "You will get a second mail labeled [VERIFIED] only if they enter the code.",
+  ].join("\n");
+}
+
+/** Admin alert after email code succeeds — real inbox confirmed. */
+export function verifiedSignupNotifyText(email: string, credits: number, userId: string): string {
+  return [
+    "[VERIFIED] Real signup — email code confirmed",
+    "This account exists and received signup credits.",
     "",
     `Email:   ${email}`,
     `User ID: ${userId}`,
