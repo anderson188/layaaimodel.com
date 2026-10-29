@@ -38,6 +38,7 @@ import { ANON_FREE_TOOL_RUNS, CREDIT_PACKS, MONTHLY_FREE_TOKENS } from "./packs"
 import { createCheckoutSession, handleStripeWebhook } from "./stripe";
 import {
   notifyAdmins,
+  pendingSignupNotifyText,
   sendUserEmail,
   verificationEmailText,
   verifiedSignupNotifyText,
@@ -187,7 +188,7 @@ async function handleTool(env: Env, req: Request, path: string): Promise<Respons
   });
 }
 
-async function handleRegister(env: Env, req: Request): Promise<Response> {
+async function handleRegister(env: Env, req: Request, ctx?: ExecutionContext): Promise<Response> {
   const body = (await req.json().catch(() => null)) as {
     email?: string;
     password?: string;
@@ -236,8 +237,18 @@ async function handleRegister(env: Env, req: Request): Promise<Response> {
     );
   }
 
-  // No admin email on PENDING — bots never verify and were flooding the notify inbox.
-  // [VERIFIED] still notifies after a real code confirmation.
+  const country = req.headers.get("CF-IPCountry");
+  const ip = clientIp(req);
+  const notify = notifyAdmins(
+    env,
+    `[PENDING] Signup: ${email}`,
+    pendingSignupNotifyText(email, ipHash, {
+      country,
+      ip: ip === "local" ? null : ip,
+    }),
+  );
+  if (ctx) ctx.waitUntil(notify);
+  else void notify;
 
   return json(
     {
@@ -595,7 +606,7 @@ export default {
       } else if (req.method === "POST" && findToolHandler(path)) {
         res = await handleTool(env, req, path);
       } else if (req.method === "POST" && path === "/v1/auth/register") {
-        res = await handleRegister(env, req);
+        res = await handleRegister(env, req, ctx);
       } else if (req.method === "POST" && path === "/v1/auth/verify") {
         res = await handleVerifyEmail(env, req, ctx);
       } else if (req.method === "POST" && path === "/v1/auth/resend-verification") {

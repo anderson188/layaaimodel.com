@@ -216,12 +216,19 @@ export function verificationEmailText(code: string): string {
 }
 
 /** Admin alert when someone requests a signup code (may never verify). */
-export function pendingSignupNotifyText(email: string, ipHash: string): string {
+export function pendingSignupNotifyText(
+  email: string,
+  ipHash: string,
+  extras?: { country?: string | null; ip?: string | null },
+): string {
   return [
     "[PENDING] Signup started — verification code emailed",
     "This is NOT a completed account yet. Many of these will never verify.",
+    "They already passed Turnstile to reach this step.",
     "",
     `Email:   ${email}`,
+    `Country: ${extras?.country || "(unknown)"}`,
+    `IP:      ${extras?.ip || "(not logged)"}`,
     `IP hash: ${ipHash.slice(0, 12)}…`,
     `When:    ${new Date().toISOString()}`,
     "",
