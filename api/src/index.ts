@@ -190,8 +190,8 @@ async function handleRegister(env: Env, req: Request, ctx?: ExecutionContext): P
   await ensureAuthTables(env);
 
   const email = body.email.trim().toLowerCase();
-  if (email.endsWith("@layaaimodel.com")) {
-    return error("Please use a personal email address — @layaaimodel.com cannot be used to register.", 400);
+  if (email.endsWith("@layaaimodel.com") || email.endsWith("@example.com") || email.endsWith("@example.org")) {
+    return error("Don't mess around. Use your own email — not a reserved or fake domain.", 400, "forbidden_email");
   }
   if (await userExistsByEmail(env, email)) {
     return error("Email already registered", 409);

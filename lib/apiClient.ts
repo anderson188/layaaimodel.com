@@ -3,7 +3,9 @@ import { API_BASE_URL } from "./api";
 export async function apiFetch<T>(
   path: string,
   opts: { method?: string; token?: string | null; body?: unknown } = {},
-): Promise<{ ok: true; data: T } | { ok: false; status: number; message: string }> {
+): Promise<
+  { ok: true; data: T } | { ok: false; status: number; message: string; type?: string }
+> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: opts.method ?? "GET",
     headers: {
@@ -20,9 +22,9 @@ export async function apiFetch<T>(
     data = { error: { message: text } };
   }
   if (!res.ok) {
-    const message =
-      (data as { error?: { message?: string } })?.error?.message || `HTTP ${res.status}`;
-    return { ok: false, status: res.status, message };
+    const err = (data as { error?: { message?: string; type?: string } })?.error;
+    const message = err?.message || `HTTP ${res.status}`;
+    return { ok: false, status: res.status, message, type: err?.type };
   }
   return { ok: true, data: data as T };
 }

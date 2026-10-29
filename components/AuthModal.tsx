@@ -97,6 +97,9 @@ export function AuthModal() {
       });
       setBusy(false);
       if (!res.ok) {
+        if (res.type === "forbidden_email" || /don't mess around/i.test(res.message)) {
+          window.alert(res.message);
+        }
         setMessage(res.message);
         return;
       }

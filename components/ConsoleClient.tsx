@@ -127,6 +127,9 @@ export function ConsoleClient() {
       });
       setBusy(false);
       if (!res.ok) {
+        if (/don't mess around/i.test(res.message)) {
+          window.alert(res.message);
+        }
         setMessage(res.message);
         return;
       }
